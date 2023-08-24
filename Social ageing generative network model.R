@@ -72,13 +72,15 @@ for(i in 1:length(ageBiasSet)) {
   seedVectList[[i]] <- seedVect[indexStart:indexEnd]
 }
 
+for(s in 1:numberSims) {
+
 for(a in 1:length(ageBiasSet)) {
   ageBias = ageBiasSet[a]
   seedVectTemp <- as.vector(seedVectList[[a]])
   for(m in 1:length(selectiveSet)) {
     selectGradient = selectiveSet[m]
     
-    for(s in 1:numberSims) {
+
 
       #Set unique seed for simulation run
       set.seed(seedVectTemp[numberSims * (m - 1) + s])
