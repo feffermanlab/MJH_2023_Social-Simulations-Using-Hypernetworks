@@ -140,7 +140,7 @@ select_partners <- function(prefMatrix, popData, t) {
   selectOrder <- sample(livePop$ID, nrow(livePop), 
                         prob = livePop$Age, 
                         replace = FALSE)
-  prefMatrixTemp <- preferenceMatrices[[t]]
+  prefMatrixTemp <- prefMatrix[[t]]
   for(i in as.vector(which(rowSums(prefMatrixTemp) == 0))) {
     prefMatrixTemp[i,] <- 1
     prefMatrixTemp[i, i] <- 0
