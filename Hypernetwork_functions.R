@@ -161,9 +161,10 @@ select_partners <- function(prefMatrix, popData, t) {
       associateData$AgeDiffRev <- 1 - (associateData$AgeDifference/sum(associateData$AgeDifference)))
       associateData$RelativeAgeDiff <- associateData$AgeDiffRev/sum(associateData$AgeDiffRev)
       associateData$PsUnadjust <- ((livePop$AgeBias[which(livePop$ID == i)] * associateData$RelativeAge) + 
-                                     ((1 - livePop$AgeBias[which(livePop$ID == i)]) * associateData$RelativeAgeDiff)) * 
-        associateData$RelativePrevInt
-      associateData$Ps <- associateData$PsUnadjust/sum(associateData$PsUnadjust)
+                                     ((1 - livePop$AgeBias[which(livePop$ID == i)]) * associateData$RelativeAgeDiff))
+      #* associateData$RelativePrevInt
+      associateData$PsAdjust <- associateData$PsUnadjust/sum(associateData$PsUnadjust)
+      associateData$Ps <- associateData$PsAdjust * associateData$RelativePrevInt
       # associateData$Ps <- (popData$AgeBias[which(popData$ID == i)] * (associateData$Age/sum(associateData$Age))) + 
       #   ((1 - popData$AgeBias[which(popData$ID == i)]) * associateData$RelativePrevInt)
       preferenceOrder <- as.integer(sample(as.character(associateData$ID), nrow(associateData), prob = associateData$Ps, replace = FALSE))
@@ -307,10 +308,24 @@ generate_initial_pop_knowledge <- function(popData, knowledgeSet, asoc, simpleKn
   return(popKnowledge)
 }
 
-initialize_preference_matrix <- function(N, maxT) {
+initialize_preference_matrix <- function(N, maxT, currentPartners) {
   #matrixList <- vector("list", maxT)
   matrixList <- lapply(1:maxT, matrix, data = 0, nrow = N, ncol = N)
-  matrixList[[1]] <- dualLineGraph
+  currentMatrix <- matrixList[[1]]
+  rownames(currentMatrix) <- 1:N
+  colnames(currentMatrix) <- 1:N
+  for(i in 1:length(currentPartners)) {
+    if(length(currentPartners[[i]]) > 1) {
+      combnMatrix <- combn(currentPartners[[i]], 2)
+      for(j in 1:dim(combnMatrix)[2]) {
+        currentMatrix[as.character(combnMatrix[,j][1]), as.character(combnMatrix[,j][2])] <- 
+          1 + currentMatrix[as.character(combnMatrix[,j][1]), as.character(combnMatrix[,j][2])]
+        currentMatrix[as.character(combnMatrix[,j][2]), as.character(combnMatrix[,j][1])] <- 
+          1 + currentMatrix[as.character(combnMatrix[,j][2]), as.character(combnMatrix[,j][1])]
+      }
+    }
+  }
+  matrixList[[1]] <- currentMatrix
   return(matrixList)
 }
 
@@ -440,11 +455,13 @@ update_preference_matrix <- function(prefMatrices, popData, timeStep, demoChange
       }
     } else{
       #I don't believe that the following code actually links child to parent; need to rectify this
+      #I believe I have modified to allow for parental connection.
       if(inheritance == "parental") {
         for(i in 1:length(newIDs)) {
           parent <- demoChanges[[2]][[i]]
           currentEdges <- c(which(sapply(currentPartners, function (x) parent %in% x)))
-          partners <- unique(unlist(currentPartners[currentEdges])[which(unlist(currentPartners[currentEdges]) != parent)])
+          partners <- unique(unlist(currentPartners[currentEdges]))
+                             #[which(unlist(currentPartners[currentEdges]) != parent)])
           for(j in partners) {
             currentMatrix[as.character(newIDs[i]), as.character(j)] <- 1
             currentMatrix[as.character(j), as.character(newIDs[i])] <- 1
@@ -841,6 +858,21 @@ get_incidence_matrix <- function(hyperNetwork, vertices) {
   colnames(incidenceMatrix) <- 1:length(unique(hyperNetwork_Sorted))
   for(i in 1:length(unique(hyperNetwork_Sorted))) {
     hyperEdge <- unique(hyperNetwork_Sorted)[[i]]
+    hyperEdgeInstances <- sum(sapply(seq(from = 1, to = length(hyperNetwork_Sorted)), function(x) isTRUE(all.equal(hyperEdge, hyperNetwork_Sorted[[x]]))))
+    for(j in hyperEdge) {
+      incidenceMatrix[as.character(j), as.character(i)] <- hyperEdgeInstances
+    }
+  }
+  return(incidenceMatrix)
+}
+
+get_dual_incidence_matrix <- function(hyperNetwork, vertices) {
+  hyperNetwork_Sorted <- lapply(hyperNetwork, sort)
+  incidenceMatrix <- matrix(0, nrow = length(vertices), ncol = length(hyperNetwork_Sorted))
+  row.names(incidenceMatrix) <- vertices
+  colnames(incidenceMatrix) <- as.integer(names(hyperNetwork_Sorted))
+  for(i in 1:length(hyperNetwork_Sorted)) {
+    hyperEdge <- hyperNetwork_Sorted[[i]]
     hyperEdgeInstances <- sum(sapply(seq(from = 1, to = length(hyperNetwork_Sorted)), function(x) isTRUE(all.equal(hyperEdge, hyperNetwork_Sorted[[x]]))))
     for(j in hyperEdge) {
       incidenceMatrix[as.character(j), as.character(i)] <- hyperEdgeInstances
