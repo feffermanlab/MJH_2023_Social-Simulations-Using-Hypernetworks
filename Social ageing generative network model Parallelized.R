@@ -7,8 +7,6 @@ library(foreach)
 library(doParallel)
 
 registerDoParallel(cores = 20)
-#Set working directory
-#setwd("C://Users/matth/Desktop/paramSweep-DiffusionTopologies/")
 
 #Set global parameters that do not change across simulations
 #Parameters needed to generate initial hypergraph: are population size, number of hyperedges, and probability of hyperedge membership
@@ -29,13 +27,11 @@ inheritance = "parental"
 
 #Set levels for age biases
 #This governs the extent to which individuals prioritize associating with older individuals or peers
-ageBiasSet = c(1.0)
-  #c(0, 0.25, 0.5, 0.75, 1.0)
+ageBiasSet = c(0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0)
 
 #Set levels for social selectivity
 #These parameters govern how rapidly an individual prioritizes established relationships over developing new ones as they age
-selectiveSet = c(0.20)
-  #c(0, 0.08, 0.10, 0.125, 0.20)
+selectiveSet = c(0, 0.04, 0.08, 0.10, 0.125, 0.16, 0.20)
 
 #Create folders in which to store simulation results
 #sim_details includes individual-level parameters at each time step for each simulation
@@ -52,16 +48,11 @@ if(!file.exists(incidence_mats)) dir.create(incidence_mats)
 if(!file.exists(sim_popData)) dir.create(sim_popData)
 if(!file.exists(livingPopData)) dir.create(livingPopData)
 
-#Set random seed
-#set.seed(03132023)
-#set.seed(05022023)
-
-
 #ageDist <- generate_age_structure(1000, maxIter = 20000)
-
 ageDist <- read.csv("~/scratch/SA_HyperNets/Run1/Initial Age Distribution.csv", header = TRUE)[,2]
 
-set.seed(05062023)
+#Set random seed
+set.seed(08262023)
 
 #Set vector of random seeds, with a unique seed for each simulation
 seedVect <- round(rnorm((numberSims * length(ageBiasSet)
@@ -82,14 +73,9 @@ for(a in 1:length(ageBiasSet)) {
   seedVectTemp <- as.vector(seedVectList[[a]])
   for(m in 1:length(selectiveSet)) {
     selectGradient = selectiveSet[m]
-    
-
 
       #Set unique seed for simulation run
       set.seed(seedVectTemp[numberSims * (m - 1) + s])
-      
-      #Initialize a starting age distribution for the population
-      #initAges <- generate_age_structure(N*100, maxIter = 10000)
       
       #Create dataframe to record data for population members
       popData <- create_population_data(N, initialAges = sample(ageDist, size = N, replace = TRUE), ageBias = ageBias, selectGradient = selectGradient)
@@ -106,27 +92,6 @@ for(a in 1:length(ageBiasSet)) {
       
       #Create array to hold preference matrices for each time step
       preferenceMatrices <- initialize_preference_matrix(N = N, maxT = maxT, currentPartners = popNetwork)
-      
-      #Create data frame to hold individual-level data for each time step
-      # individual_summary_data <- data.frame("simID" = rep(s, maxT * N), 
-      #                                       "ageBias" = rep(ageBias, maxT * N),
-      #                                       "selectGradient" = rep(selectGradient, maxT * N),
-      #                                       "Inheritance" = rep(inheritance, maxT * N),
-      #                                       "ID" = 0, 
-      #                                       "timeStep" = 0, 
-      #                                       "Age" = 0,
-      #                                       "Parent" = 0,
-      #                                       "GSPref" = 0,
-      #                                       "s1BC" = 0, "s2BC" = 0, "s3BC" = 0,
-      #                                       "siBC" = 0,
-      #                                       "s1D" = 0, "s2D" = 0, "s3D" = 0,
-      #                                       "siD" = 0, 
-      #                                       "s1HC" = 0, "s2HC" = 0, "s3HC" = 0,
-      #                                       "siHC" = 0, 
-      #                                       "degree" = 0,
-      #                                       "strength" = 0, 
-      #                                       "betweenness" = 0,
-      #                                       "harmonicCent" = 0)
       
       timeStep <- 1
       repeat{
@@ -195,7 +160,6 @@ for(a in 1:length(ageBiasSet)) {
         #Create empty vector to hold dyadic partner selection data
         pairList <- c()
         
-        #Possible speed boost point
         #Allow for groups to form based on individuals' dyadic preferences
         for(k in 1:nNetReps){
           partners <- select_partners(prefMatrix = preferenceMatrices, popData = popData, t = timeStep)
@@ -207,10 +171,9 @@ for(a in 1:length(ageBiasSet)) {
         currentPartners <- currentPartners[-which(sapply(currentPartners, is.null))]
         
         
-        #Output pairwise edge list and hypergraph incidence matrix (only do this for final 100 timesteps of simulation)
+        #Output pairwise edge list and hypergraph incidence matrix (only do this every 5 steps during the final 100 timesteps of simulation)
         #if(t == maxT) {
         if(t %in% (1:maxT)[outputSteps]){
-           #>= (maxT - 100)){
           write.csv(pairList, file = file.path(edge_lists, sprintf("edgeData_%s_%.2f_%.2f_%02i_%03i.csv", run_ID, ageBias, selectGradient, s, timeStep)))
           currentIncidenceMatrix <- get_incidence_matrix(hyperNetwork = currentPartners, vertices = popData$ID[which(popData$Alive == "Y")])
           write.csv(currentIncidenceMatrix, file = file.path(incidence_mats, sprintf("incidMat_%s_%.2f_%.2f_%02i_%03i.csv", run_ID, ageBias, selectGradient, s, timeStep)))
@@ -218,18 +181,12 @@ for(a in 1:length(ageBiasSet)) {
           write.csv(livingPop, file = file.path(livingPopData, sprintf("livingPop_%s_%.2f_%.2f_%02i_%03i.csv", run_ID, ageBias, selectGradient, s, timeStep)))
         }
         
-        #Possible speed boost point
-        #Record individual-level (hyper)network positions
-        # individual_summary_data[(((t - 1) * N) + 1):(N * t), 
-        #                         5:25] <- record_individual_summary_data(popData = popData, smax = 3, mode = "edgeList")
-        
         #Check if any deaths occur; an individual is born for each death to keep population size stable
         demoChanges <- identify_demographic_changes(popData = popData)
         
         preferenceMatrices[[timeStep + 1]] <- update_preference_matrix(prefMatrices = preferenceMatrices, popData = popData, timeStep = timeStep, 
                                                                        demoChanges = demoChanges, currentPartners = currentPartners, inheritance = inheritance)
         
-        #preallocation?
         #Update data for population members
         if(length(demoChanges[[2]]) > 0) {
           maxID <- max(popData$ID[which(popData$Alive == "Y")])
@@ -253,12 +210,10 @@ for(a in 1:length(ageBiasSet)) {
           popData$Age[popData$Alive == "Y"] <- popData$Age[popData$Alive == "Y"] + 1
         }
 
-        #popData <- update_population_data(popData = popData, demoChanges = demoChanges, ageBias = ageBias, selectGradient = selectGradient)
       }
       
       popData <- popData[which(popData$Age > 0),]
       write.csv(popData, file = file.path(sim_popData, sprintf("popData_%s_%.2f_%.2f_%02i.csv", run_ID, ageBias, selectGradient, s)))
-      #write.csv(individual_summary_data, file = file.path(sim_details, sprintf("ILData_%s_%.2f_%.2f_%02i.csv", run_ID, ageBias, selectGradient, s)))
     }
   }
 }
