@@ -66,7 +66,7 @@ for(i in 1:length(ageBiasSet)) {
   seedVectList[[i]] <- seedVect[indexStart:indexEnd]
 }
 
-foreach(s = 1:numberSims) %dopar% {
+foreach(s = 81:numberSims) %dopar% {
 
 for(a in 1:length(ageBiasSet)) {
   ageBias = ageBiasSet[a]
