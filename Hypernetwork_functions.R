@@ -552,6 +552,24 @@ get_s_betweenness <- function(hypergraph, smax, vertexNames, mode) {
   return(list(matrixTemp, integratedScores))
 }
 
+#Does not adequately function right now due to s-line graphs becoming disconnected for higher values of s
+get_s_eigen_centrality <- function(hypergraph, smax, vertexNames, mode) {
+  matrixTemp <- matrix(0, nrow = ncol(hypergraph), ncol = smax)
+  matrixTemp <- sapply(seq_along(1:smax), function(x) 
+    matrixTemp[,x] <- as.vector(
+      eigen_centrality(
+        graph_from_adjacency_matrix(
+          get_s_line_graph(
+            hypergraph, size = x, vertexNames = vertexNames, mode = mode), 
+          mode = "undirected", diag = FALSE), 
+        directed = FALSE, scale = TRUE)$vector))
+  rankedMatrix <- matrix(0, nrow = ncol(hypergraph), ncol= smax)
+  rankedMatrix <- sapply(seq_along(1:smax), function(x) rankedMatrix[,x] <- 
+                           rank(matrixTemp[,x]))
+  integratedScores <- rank(-rowSums(rankedMatrix)/smax, ties.method = "average")
+  return(list(matrixTemp, integratedScores))
+}
+
 get_s_harmonic_centrality <- function(hypergraph, smax, vertexNames, mode) {
   matrixTemp <- matrix(0, nrow = length(hypergraph), ncol = smax)
   matrixTemp <- sapply(seq_along(1:smax), function(x) 
