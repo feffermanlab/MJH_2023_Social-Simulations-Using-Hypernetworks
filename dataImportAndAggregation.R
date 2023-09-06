@@ -10,8 +10,8 @@ importCSVs <- function(path) {
   # create a loop to read in your data
   for (i in 1:length(list.filenames)) {
     list.data[[i]]<-read.csv(paste(path,list.filenames[i],sep = ""), header=TRUE)
-    print(i)
-    flush.console()
+    #print(i)
+    #flush.console()
   }
   
   # add the names of your data to the list
