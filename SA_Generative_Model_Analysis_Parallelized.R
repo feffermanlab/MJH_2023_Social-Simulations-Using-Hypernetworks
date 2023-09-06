@@ -32,7 +32,7 @@ popData <- data.frame("simID" = rep(0, 100),
                       "siBetween" = 0,
                       "subEdgeDens" = 0)
 
-foreach(s = 1:length(popDataList)) %dopar% {
+foreach(i = 1:length(popDataList)) %dopar% {
   startIndex = (i * 100) - 99
   endIndex  = (i * 100)
   simIDTemp = ceiling(i/20)
@@ -70,5 +70,5 @@ foreach(s = 1:length(popDataList)) %dopar% {
   
   popData[startIndex:endIndex, "subEdgeDens"] <- sapply(popData[startIndex:endIndex, "ID"], function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
   
-  write.csv(popData, file = file.path(sim_networkData, sprintf("popData_%s_%.2f_%02i.csv", run_ID, simIDTemp, s)))
+  write.csv(popData, file = file.path(sim_networkData, sprintf("popData_%s_%.2f_%02i.csv", run_ID, simIDTemp, i)))
 }
