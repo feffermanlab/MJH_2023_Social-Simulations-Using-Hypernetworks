@@ -11,8 +11,8 @@ run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
 sim_networkData="Sim-networkData_diffusionTopologies_paramSweep"
 if(!file.exists(sim_networkData)) dir.create(sim_networkData)
 
-popDataList <- importCSVs(path = "C://Users/matth/Desktop/Run4/sim-livingPopData_diffusionTopologies_paramSweep/")
-incidMatList <- importCSVs(path = "C://Users/matth/Desktop/Run4/sim-incidMat_diffusionTopologies_paramSweep/")
+popDataList <- importCSVs(path = "~/sim-livingPopData_diffusionTopologies_paramSweep/")
+incidMatList <- importCSVs(path = "~/sim-incidMat_diffusionTopologies_paramSweep/")
 
 popData <- data.frame("simID" = rep(0, 100),
                       "ID" = 0,
