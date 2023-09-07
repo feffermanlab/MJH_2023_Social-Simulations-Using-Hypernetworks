@@ -69,7 +69,7 @@ foreach(i = 1:length(popDataList)) %dopar% {
   popData$siDegree <- get_s_degree(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
   popData$siBetween <- get_s_betweenness(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
   
-  popData$subEdgeDens <- sapply(popData[startIndex:endIndex, "ID"], function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
+  popData$subEdgeDens <- sapply(popData$ID, function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
   
   write.csv(popData, file = file.path(sim_networkData, sprintf("popData_%s_%.2f_%02i.csv", run_ID, simIDTemp, i)))
 }
