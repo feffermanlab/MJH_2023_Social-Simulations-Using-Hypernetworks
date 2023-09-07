@@ -33,20 +33,21 @@ popData <- data.frame("simID" = rep(0, 100),
                       "subEdgeDens" = 0)
 
 foreach(i = 1:length(popDataList)) %dopar% {
-  startIndex = (i * 100) - 99
-  endIndex  = (i * 100)
+  # startIndex = (i * 100) - 99
+  # endIndex  = (i * 100)
   simIDTemp = ceiling(i/20)
   nameLength = nchar(names(popDataList)[[i]])
   timeTemp = as.integer(substring(names(popDataList)[[i]], nameLength - 6, nameLength - 4))
-  popData[startIndex:endIndex, "ID"] <- popDataList[[i]]$ID
-  popData[startIndex:endIndex, "simID"] <- simIDTemp
+  #popData[startIndex:endIndex, "ID"] <- popDataList[[i]]$ID
+  popData$ID <- popDataList[[i]]$ID
+  popData$simID <- simIDTemp
   popData$ID.SimID <- paste(popData$ID, popData$simID, sep = ".")
-  popData[startIndex:endIndex, "timeStep"] <- timeTemp
-  popData[startIndex:endIndex, "ageBias"] <- popDataList[[i]]$AgeBias
-  popData[startIndex:endIndex, "selectGrad"] <- popDataList[[i]]$selectGradient
-  popData[startIndex:endIndex, "GSPref"] <- popDataList[[i]]$GSPref
-  popData[startIndex:endIndex, "Parent"] <- popDataList[[i]]$Parent
-  popData[startIndex:endIndex, "Age"] <- popDataList[[i]]$Age
+  popData$timeStep <- timeTemp
+  popData$ageBias <- popDataList[[i]]$AgeBias
+  popData$selectGrad <- popDataList[[i]]$selectGradient
+  popData$GSPref <- popDataList[[i]]$GSPref
+  popData$Parent <- popDataList[[i]]$Parent
+  popData$Age <- popDataList[[i]]$Age
   
   currentIDs <- incidMatList[[i]][,1]
   focalIncidMat <- as.matrix(incidMatList[[i]][,-1])
@@ -59,16 +60,16 @@ foreach(i = 1:length(popDataList)) %dopar% {
                                                           weighted = TRUE)
   GoGgraph <- graph_from_adjacency_matrix(GoGmatrix, mode = "undirected", weighted = TRUE, diag = FALSE)
   
-  popData[startIndex:endIndex, "Degree"] <- as.vector(degree(GoGgraph))
-  popData[startIndex:endIndex, "Between"] <- as.vector(betweenness(GoGgraph, 
+  popData$Degree <- as.vector(degree(GoGgraph))
+  popData$Between <- as.vector(betweenness(GoGgraph, 
                                                                    directed = FALSE, normalized = TRUE, 
                                                                    weights = 1/edge.attributes(GoGgraph)$weight))
-  popData[startIndex:endIndex, "eVC"] <- as.vector(eigen_centrality(GoGgraph, directed = FALSE, scale = TRUE)$vector)
+  popData$eVC <- as.vector(eigen_centrality(GoGgraph, directed = FALSE, scale = TRUE)$vector)
   
-  popData[startIndex:endIndex, "siDegree"] <- get_s_degree(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
-  popData[startIndex:endIndex, "siBetween"] <- get_s_betweenness(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
+  popData$siDegree <- get_s_degree(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
+  popData$siBetween <- get_s_betweenness(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
   
-  popData[startIndex:endIndex, "subEdgeDens"] <- sapply(popData[startIndex:endIndex, "ID"], function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
+  popData$subEdgeDens <- sapply(popData[startIndex:endIndex, "ID"], function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
   
   write.csv(popData, file = file.path(sim_networkData, sprintf("popData_%s_%.2f_%02i.csv", run_ID, simIDTemp, i)))
 }
