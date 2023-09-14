@@ -27,8 +27,6 @@ inheritance = "parental"
 #These parameters govern how rapidly an individual prioritizes established relationships over developing new ones as they age
 selectiveSet = c(0, 0.04, 0.06, 0.08, 0.10, 0.125, 0.20)
 
-setwd("C://Users/matth/Desktop/friendtest/")
-
 #Create folders in which to store simulation results
 #sim_details includes individual-level parameters at each time step for each simulation
 #sim-summaries includes global-level statistics for each time step for each simulation run
