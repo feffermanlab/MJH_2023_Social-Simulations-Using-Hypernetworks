@@ -58,7 +58,8 @@ for(i in 1:numberSims) {
   seedVectList[[i]] <- seedVect[indexStart:indexEnd]
 }
 
-for(s in 1:numberSims) {
+foreach(s = 1:numberSims) %dopar% {
+#for(s in 1:numberSims) {
   seedVectTemp <- as.vector(seedVectList[[s]])
   for(m in 1:length(selectiveSet)) {
     selectGradient = selectiveSet[m]
