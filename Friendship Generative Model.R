@@ -193,7 +193,8 @@ foreach(s = 1:numberSims) %dopar% {
       }
       
     }
+    popData <- popData[which(popData$Age > 0),]
+    write.csv(popData, file = file.path(sim_popData, sprintf("popData_%s_%.2f_%02i.csv", run_ID, selectGradient, s)))
   }
-  popData <- popData[which(popData$Age > 0),]
-  write.csv(popData, file = file.path(sim_popData, sprintf("popData_%s_%.2f_%02i.csv", run_ID, selectGradient, s)))
+
 }
