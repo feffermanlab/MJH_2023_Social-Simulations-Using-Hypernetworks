@@ -1070,3 +1070,85 @@ get_local_subedge_density <- function(hypergraph, vertex) {
   }
   return(gsed)
 }
+
+select_friends <- function(prefMatrix, popData, t) {
+  livePop <- popData[which(popData$Alive == "Y"),]
+  groupList <- vector("list", nrow(livePop))
+  pairList <- matrix(0, nrow = nrow(livePop), ncol = 2)
+  selectOrder <- sample(livePop$ID, size = nrow(livePop), replace = FALSE)
+  prefMatrixTemp <- prefMatrix[[t]]
+  for(i in as.vector(which(rowSums(prefMatrixTemp) == 0))) {
+    prefMatrixTemp[i,] <- 1
+    prefMatrixTemp[i, i] <- 0
+  }
+  for(i in selectOrder) {
+    if(length(groupList[sapply(groupList, function(x) i %in% x)]) == 0) {
+      currentAge <- livePop$Age[which(livePop$ID == i)]
+      selectivity <- 1 + 0.5/(1 + exp(-(livePop$selectGradient[which(livePop$ID == i)]) * currentAge + 5))
+      partnerProb <- (prefMatrixTemp[as.character(i),]^selectivity)/sum((prefMatrixTemp[as.character(i),]^selectivity))
+      partner <- sample(livePop$ID, size = 1, replace = FALSE, prob = partnerProb)
+
+        if(length(groupList[sapply(groupList, function(x) partner %in% x)]) == 0) {
+          groupList[[1 + (length(groupList) - length(groupList[which(sapply(groupList, is.null))]))]] <- c(i, partner)
+          pairList[which(livePop$ID == i),] <- c(i,partner)
+        } else{
+            groupList[[which(sapply(groupList, function(x) partner %in% x))[1]]] <- c(groupList[[which(sapply(groupList, function(x) partner %in% x))[1]]], i)
+            pairList[which(livePop$ID == i),] <- c(i,partner)
+        }
+    }
+  }
+  groupList <- groupList[-which(sapply(groupList, is.null))]
+  pairList <- pairList[pairList[,1] > 0, ]
+  return(list(groupList, pairList))
+}
+
+update_friendship_matrix <- function(prefMatrices, popData, timeStep, demoChanges, currentPartners, inheritance) {
+  currentMatrix <- prefMatrices[[timeStep]]
+  for(i in 1:nrow(currentPartners)) {
+    partner1 <- currentPartners[i,1]
+    partner2 <- currentPartners[i,2]
+    currentMatrix[as.character(partner1), as.character(partner2)] <- 
+      currentMatrix[as.character(partner1), as.character(partner2)] + 1
+    currentMatrix[as.character(partner2), as.character(partner1)] <- 
+      currentMatrix[as.character(partner2), as.character(partner1)] + 1
+  }
+  if(length(demoChanges[[2]]) > 0) {
+    maxID <- max(popData$ID[which(popData$Alive == "Y")])
+    newIDs <- rep(0, length(demoChanges[[2]]))
+    for(i in 1:length(demoChanges[[2]])) {
+      newIDs[i] <- maxID + i
+    }
+    oldNames <- colnames(currentMatrix)
+    newIDColumns <- matrix(0, nrow = nrow(currentMatrix), ncol = length(newIDs))
+    colnames(newIDColumns) <- as.character(newIDs)
+    rownames(newIDColumns) <- row.names(currentMatrix)
+    currentMatrix <- cbind(currentMatrix, newIDColumns)
+    newIDRows <- matrix(0, nrow = length(newIDs), ncol = ncol(currentMatrix))
+    rownames(newIDRows) <- as.character(newIDs)
+    colnames(newIDRows) <- colnames(currentMatrix)
+    currentMatrix <- rbind(currentMatrix, newIDRows)
+    
+    if(inheritance == "parental") {
+      for(i in 1:length(newIDs)) {
+        parent <- demoChanges[[2]][[i]]
+        currentEdges <- unique(c(currentPartners[which(currentPartners[,1] == parent),], 
+                                 currentPartners[which(currentPartners[,2] == parent),]))
+        partners <- currentEdges[which(currentEdges != parent)]
+        currentMatrix[as.character(newIDs[i]), ] <- 1
+        currentMatrix[,as.character(newIDs[i])] <- 1
+        for(j in partners) {
+          currentMatrix[as.character(newIDs[i]), as.character(j)] <- 3
+          currentMatrix[as.character(j), as.character(newIDs[i])] <- 3
+        }
+        currentMatrix[as.character(newIDs[i]), as.character(parent)] <- 5
+        currentMatrix[as.character(parent), as.character(newIDs[i])] <- 5
+      } 
+    }
+    
+    for(i in demoChanges[[1]]) {
+      currentMatrix <- currentMatrix[!rownames(currentMatrix) %in% as.character(i), !colnames(currentMatrix) %in% as.character(i)]
+    }
+  }
+  diag(currentMatrix) <- 0
+  return(currentMatrix) 
+}
