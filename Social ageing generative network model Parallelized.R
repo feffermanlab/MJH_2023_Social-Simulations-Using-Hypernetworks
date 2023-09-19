@@ -27,22 +27,24 @@ inheritance = "parental"
 
 #Set levels for age biases
 #This governs the extent to which individuals prioritize associating with older individuals or peers
-ageBiasSet = c(0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0)
+#ageBiasSet = c(0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0)
+ageBiasSet = c(0, 0.5, 1.0)
 
 #Set levels for social selectivity
 #These parameters govern how rapidly an individual prioritizes established relationships over developing new ones as they age
-selectiveSet = c(0, 0.04, 0.08, 0.10, 0.125, 0.16, 0.20)
+#selectiveSet = c(0, 0.04, 0.08, 0.10, 0.125, 0.16, 0.20)
+selectiveSet = c(0, 0.10, 0.20)
 
 #Create folders in which to store simulation results
 #sim_details includes individual-level parameters at each time step for each simulation
 #sim-summaries includes global-level statistics for each time step for each simulation run
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_details="Sim-details_diffusionTopologies_paramSweep"
+#sim_details="Sim-details_diffusionTopologies_paramSweep"
 edge_lists = "Sim-edgeLists_diffusionTopologies_paramSweep"
 incidence_mats = "Sim-incidMat_diffusionTopologies_paramSweep"
 sim_popData = "Sim-popData_diffusionTopologies_paramSweep"
 livingPopData = "Sim-livingPopData_diffusionTopologies_paramSweep"
-if(!file.exists(sim_details)) dir.create(sim_details)
+#if(!file.exists(sim_details)) dir.create(sim_details)
 if(!file.exists(edge_lists)) dir.create(edge_lists)
 if(!file.exists(incidence_mats)) dir.create(incidence_mats)
 if(!file.exists(sim_popData)) dir.create(sim_popData)
@@ -66,7 +68,7 @@ for(i in 1:length(ageBiasSet)) {
   seedVectList[[i]] <- seedVect[indexStart:indexEnd]
 }
 
-foreach(s = 81:numberSims) %dopar% {
+foreach(s = 1:numberSims) %dopar% {
 
 for(a in 1:length(ageBiasSet)) {
   ageBias = ageBiasSet[a]
@@ -147,7 +149,8 @@ for(a in 1:length(ageBiasSet)) {
       currentPrefMat <- preferenceMatrices[[timeStep + 1]]
       preferenceMatrices <- lapply(1:maxT, matrix, data = 0, nrow = N, ncol = N)
       preferenceMatrices[[1]] <- currentPrefMat
-      outputSteps <- (1:maxT %% 5) == 0
+      #outputSteps <- (1:maxT %% 5) == 0
+      outputSteps <- c(rep(FALSE, maxT/2), ((maxT/2 + 1):maxT %% 5) == 0)
       
       #Begin running through time steps
       for(t in 1:maxT){
