@@ -35,7 +35,7 @@ popData <- data.frame("simID" = rep(0, 100),
 foreach(i = 1:length(popDataList)) %dopar% {
   # startIndex = (i * 100) - 99
   # endIndex  = (i * 100)
-  simIDTemp = ceiling(i/20)
+  simIDTemp = ceiling(i/10)
   nameLength = nchar(names(popDataList)[[i]])
   timeTemp = as.integer(substring(names(popDataList)[[i]], nameLength - 6, nameLength - 4))
   #popData[startIndex:endIndex, "ID"] <- popDataList[[i]]$ID
