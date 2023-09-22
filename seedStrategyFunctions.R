@@ -16,6 +16,15 @@ seedStrategy_highestBetweenness <- function(data, numSeeds) {
   return(data)
 }
 
+seedStrategy_highestEVC <- function(data, numSeeds) {
+  data$eVCRank <- rank(-data$eVC)
+  newData <- data %>% arrange(data$eVCRank)
+  seeds <- newData$ID[1:numSeeds]
+  data[which(data$ID %in% seeds),]$knowledgeState <- 1
+  data[which(data$ID %in% seeds),]$initDemons <- 1
+  return(data)
+}
+
 seedStrategy_highestharmCent <- function(data, numSeeds) {
   data$harmCentralityRank <- rank(-data$harmCentrality)
   newData <- data %>% arrange(data$harmCentralityRank)
