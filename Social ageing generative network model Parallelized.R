@@ -17,7 +17,7 @@ maxT = 100
 nNetReps = 12
 
 #Set number of simulations to run per set of parameters
-numberSims = 100
+numberSims = 1000
 
 #Set inheritance pattern
 #Can be "random" or "parental"
@@ -28,12 +28,14 @@ inheritance = "parental"
 #Set levels for age biases
 #This governs the extent to which individuals prioritize associating with older individuals or peers
 #ageBiasSet = c(0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0)
-ageBiasSet = c(0, 0.5, 1.0)
+#ageBiasSet = c(0, 0.5, 1.0)
+ageBiasSet = c(0.5)
 
 #Set levels for social selectivity
 #These parameters govern how rapidly an individual prioritizes established relationships over developing new ones as they age
 #selectiveSet = c(0, 0.04, 0.08, 0.10, 0.125, 0.16, 0.20)
-selectiveSet = c(0, 0.10, 0.20)
+#selectiveSet = c(0, 0.10, 0.20)
+selectiveSet = c(0.10)
 
 #Create folders in which to store simulation results
 #sim_details includes individual-level parameters at each time step for each simulation
@@ -175,8 +177,8 @@ for(a in 1:length(ageBiasSet)) {
         
         
         #Output pairwise edge list and hypergraph incidence matrix (only do this every 5 steps during the final 100 timesteps of simulation)
-        #if(t == maxT) {
-        if(t %in% (1:maxT)[outputSteps]){
+        if(t == maxT) {
+        #if(t %in% (1:maxT)[outputSteps]){
           write.csv(pairList, file = file.path(edge_lists, sprintf("edgeData_%s_%.2f_%.2f_%02i_%03i.csv", run_ID, ageBias, selectGradient, s, timeStep)))
           currentIncidenceMatrix <- get_incidence_matrix(hyperNetwork = currentPartners, vertices = popData$ID[which(popData$Alive == "Y")])
           write.csv(currentIncidenceMatrix, file = file.path(incidence_mats, sprintf("incidMat_%s_%.2f_%.2f_%02i_%03i.csv", run_ID, ageBias, selectGradient, s, timeStep)))
