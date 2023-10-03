@@ -9,7 +9,8 @@ library(doParallel)
 
 registerDoParallel(cores = 20)
 
-stopifnot(dir.exists("Sim-incidMat_diffusionTopologies_FinalTimeSteps_StratCompare/"))
+#stopifnot(dir.exists("Sim-incidMat_diffusionTopologies_FinalTimeSteps_StratCompare/"))
+stopifnot(dir.exists("Sim-incidMat_diffusionTopologies_paramSweep/"))
 
 #Import incidence matrices
 incidMats <- importCSVs(path = "/home/mhasenja/scratch/SA_HyperNets/Run6/Sim-incidMat_diffusionTopologies_paramSweep/")
