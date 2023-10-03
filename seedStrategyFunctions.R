@@ -7,6 +7,15 @@ seedStrategy_highestDegree <- function(data, numSeeds) {
   return(data)
 }
 
+seedStrategy_highestStrength <- function(data, numSeeds) {
+  data$strengthRank <- rank(-data$strength)
+  newData <- data %>% arrange(data$strengthRank)
+  seeds <- newData$ID[1:numSeeds]
+  data[which(data$ID %in% seeds),]$knowledgeState <- 1
+  data[which(data$ID %in% seeds),]$initDemons <- 1
+  return(data)
+}
+
 seedStrategy_highestBetweenness <- function(data, numSeeds) {
   data$betweennessRank <- rank(-data$betweenness)
   newData <- data %>% arrange(data$betweennessRank)

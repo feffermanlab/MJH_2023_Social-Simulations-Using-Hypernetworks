@@ -12,7 +12,7 @@ registerDoParallel(cores = 20)
 stopifnot(dir.exists("Sim-incidMat_diffusionTopologies_FinalTimeSteps_StratCompare/"))
 
 #Import incidence matrices
-incidMats <- importCSVs(path = "/home/mhasenja/scratch/SA_HyperNets/Run5/Sim-incidMat_diffusionTopologies_FinalTimeSteps_StratCompare/")
+incidMats <- importCSVs(path = "/home/mhasenja/scratch/SA_HyperNets/Run6/Sim-incidMat_diffusionTopologies_paramSweep/")
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
@@ -26,10 +26,10 @@ set.seed(09222023)
 initialInformed = 3
 lambda = 0.025
 
-seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestBetweenness, seedStrategy_highestEVC,
+seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestBetweenness, seedStrategy_highestStrength,
   seedStrategy_highestsiD, seedStrategy_highestsiBC, seedStrategy_highestSED)
 
-seedStrategyNames <- c("highestDegree", "highestBetweenness", "highestEVC", "highestsiD", "highestsiBC", "highestSED")
+seedStrategyNames <- c("highestDegree", "highestBetweenness", "highestStrength", "highestsiD", "highestsiBC", "highestSED")
 
 groupInterferenceEffect <- c("groupSizeIndependent", "groupSizeDependent")
 
@@ -58,7 +58,7 @@ foreach(i = 1:length(incidMats)) %dopar% {
                           "ID" = currentIDs,
                           "degree" = 0,
                           "betweenness" = 0, 
-                          "eVC" = 0,
+                          "strength" = 0,
                           "siD" = 0,
                           "siBC" = 0,
                           "subEdgeDens" = 0,
@@ -68,7 +68,8 @@ foreach(i = 1:length(incidMats)) %dopar% {
 
   focalData$degree <- as.vector(degree(GoGgraph))
   focalData$betweenness <- as.vector(betweenness(GoGgraph, directed = FALSE, normalized = TRUE, weights = 1/edge.attributes(GoGgraph)$weight))
-  focalData$eVC <- as.vector(eigen_centrality(GoGgraph, directed = FALSE, scale = TRUE)$vector)
+  focalData$strength <- as.vector(strength(GoGgraph, loops = FALSE, mode = "all"))
+  #focalData$eVC <- as.vector(eigen_centrality(GoGgraph, directed = FALSE, scale = TRUE)$vector)
   focalData$siD <- get_s_degree(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
   focalData$siBC <- get_s_betweenness(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
   focalData$subEdgeDens <- sapply(focalData$ID, function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
