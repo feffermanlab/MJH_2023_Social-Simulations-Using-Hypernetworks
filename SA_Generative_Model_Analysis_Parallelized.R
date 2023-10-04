@@ -8,7 +8,7 @@ library(doParallel)
 registerDoParallel(cores = 20)
 
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_networkData="Sim-networkData_diffusionTopologies_paramSweep"
+sim_networkData="Sim-networkData_diffusionTopologies_paramSweep_Str"
 if(!file.exists(sim_networkData)) dir.create(sim_networkData)
 
 popDataList <- importCSVs(path = "/home/mhasenja/scratch/SA_HyperNets/Run5/Sim-livingPopData_diffusionTopologies_paramSweep/")
@@ -30,7 +30,8 @@ popData <- data.frame("simID" = rep(0, 100),
                       "eVC" = 0,
                       "siDegree" = 0,
                       "siBetween" = 0,
-                      "subEdgeDens" = 0)
+                      "subEdgeDens" = 0, 
+                      "Strength" = 0)
 
 foreach(i = 1:length(popDataList)) %dopar% {
   # startIndex = (i * 100) - 99
@@ -65,6 +66,8 @@ foreach(i = 1:length(popDataList)) %dopar% {
                                                                    directed = FALSE, normalized = TRUE, 
                                                                    weights = 1/edge.attributes(GoGgraph)$weight))
   popData$eVC <- as.vector(eigen_centrality(GoGgraph, directed = FALSE, scale = TRUE)$vector)
+  
+  popData$Strength <- as.vector(strength(GoGgraph, loops = FALSE, mode = "all"))
   
   popData$siDegree <- get_s_degree(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
   popData$siBetween <- get_s_betweenness(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
