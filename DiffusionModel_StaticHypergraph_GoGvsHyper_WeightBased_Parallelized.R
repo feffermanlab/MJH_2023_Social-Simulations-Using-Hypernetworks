@@ -30,7 +30,7 @@ lambda = 0.025
 
 #seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestBetweenness, seedStrategy_highestStrength,
 #  seedStrategy_highestsiD, seedStrategy_highestsiBC, seedStrategy_highestSED)
-#seedStrategySet <- c(seedStrategy_highestStrength, seedStrategy_highestsiD)
+seedStrategySet <- c(seedStrategy_highestStrength, seedStrategy_highestsiD)
 
 #seedStrategyNames <- c("highestDegree", "highestBetweenness", "highestStrength", "highestsiD", "highestsiBC", "highestSED")
 seedStrategyNames <- c("highestStrength", "highestsiD")
