@@ -13,24 +13,27 @@ registerDoParallel(cores = 20)
 stopifnot(dir.exists("Sim-incidMat_diffusionTopologies_paramSweep/"))
 
 #Import incidence matrices
-incidMats <- importCSVs(path = "/home/mhasenja/scratch/SA_HyperNets/Run6/Sim-incidMat_diffusionTopologies_paramSweep/")
+incidMats <- importCSVs(path = "/home/mhasenja/scratch/SA_HyperNets/Run7/Sim-incidMat_diffusionTopologies_paramSweep/")
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_details="Sim-details_higherOrderContagion_Weights_GoGvsHyp_StratCompare"
+sim_details="Sim-details_higherOrderContagion_Weights_GoGvsHyp_paramSweep"
 if(!file.exists(sim_details)) dir.create(sim_details)
 
 #Set random seed to ensure repeatability
-set.seed(09222023)
+#set.seed(09222023)
+set.seed(10092023)
 
 #Set simulation-wide parameters
 initialInformed = 3
 lambda = 0.025
 
-seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestBetweenness, seedStrategy_highestStrength,
-  seedStrategy_highestsiD, seedStrategy_highestsiBC, seedStrategy_highestSED)
+#seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestBetweenness, seedStrategy_highestStrength,
+#  seedStrategy_highestsiD, seedStrategy_highestsiBC, seedStrategy_highestSED)
+#seedStrategySet <- c(seedStrategy_highestStrength, seedStrategy_highestsiD)
 
-seedStrategyNames <- c("highestDegree", "highestBetweenness", "highestStrength", "highestsiD", "highestsiBC", "highestSED")
+#seedStrategyNames <- c("highestDegree", "highestBetweenness", "highestStrength", "highestsiD", "highestsiBC", "highestSED")
+seedStrategyNames <- c("highestStrength", "highestsiD")
 
 groupInterferenceEffect <- c("groupSizeIndependent", "groupSizeDependent")
 
