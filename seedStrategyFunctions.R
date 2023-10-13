@@ -16,6 +16,20 @@ seedStrategy_highestStrength <- function(data, numSeeds) {
   return(data)
 }
 
+seedStrategy_randomAge <- function(data, numSeeds) {
+  seeds <- sample(data$ID, numSeeds, replace = FALSE)
+  data[which(data$ID %in% seeds),]$knowledgeState <- 1
+  data[which(data$ID %in% seeds),]$initDemons <- 1
+  return(data)
+}
+
+seedStrategy_Oldest <- function(data, numSeeds) {
+  seeds <- sort(data$ID)[1:numSeeds]
+  data[which(data$ID %in% seeds),]$knowledgeState <- 1
+  data[which(data$ID %in% seeds),]$initDemons <- 1
+  return(data)
+}
+
 seedStrategy_highestBetweenness <- function(data, numSeeds) {
   data$betweennessRank <- rank(-data$betweenness)
   newData <- data %>% arrange(data$betweennessRank)

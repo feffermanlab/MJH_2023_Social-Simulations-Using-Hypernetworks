@@ -17,7 +17,7 @@ incidMats <- importCSVs(path = "/home/mhasenja/scratch/SA_HyperNets/Run7/Sim-inc
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_details="Sim-details_higherOrderContagion_Weights_GoGvsHyp_paramSweep"
+sim_details="Sim-details_higherOrderContagion_Weights_GoGvsHyp_paramSweep_AgeStrats"
 if(!file.exists(sim_details)) dir.create(sim_details)
 
 #Set random seed to ensure repeatability
@@ -30,10 +30,12 @@ lambda = 0.025
 
 #seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestBetweenness, seedStrategy_highestStrength,
 #  seedStrategy_highestsiD, seedStrategy_highestsiBC, seedStrategy_highestSED)
-seedStrategySet <- c(seedStrategy_highestStrength, seedStrategy_highestsiD)
+#seedStrategySet <- c(seedStrategy_highestStrength, seedStrategy_highestsiD)
+seedStrategySet <- c(seedStrategy_Oldest, seedStrategy_randomAge)
 
 #seedStrategyNames <- c("highestDegree", "highestBetweenness", "highestStrength", "highestsiD", "highestsiBC", "highestSED")
-seedStrategyNames <- c("highestStrength", "highestsiD")
+#seedStrategyNames <- c("highestStrength", "highestsiD")
+seedStrategyNames <- c("Oldest", "randomAge")
 
 groupInterferenceEffect <- c("groupSizeIndependent", "groupSizeDependent")
 
