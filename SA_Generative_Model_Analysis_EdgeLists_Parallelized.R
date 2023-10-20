@@ -47,7 +47,7 @@ foreach(i = 1:length(popDataList)) %dopar% {
   popData$Parent <- popDataList[[i]]$Parent
   popData$Age <- popDataList[[i]]$Age
   
-  currentIDs <- incidMatList[[i]][,1]
+  currentIDs <- popDataList[[i]]$ID
   focalEdgeList <- edgeLists[[1]][,-1]
   pairMatrix <- matrix(data = 0, nrow = length(currentIDs), ncol = length(currentIDs))
   row.names(pairMatrix) <- currentIDs
@@ -71,6 +71,3 @@ foreach(i = 1:length(popDataList)) %dopar% {
   write.csv(popData, file = file.path(sim_networkData, sprintf("popData_%s_%.2f_%02i.csv", run_ID, simIDTemp, i)))
 }
 
-
-
-betweenness(testGraph, directed = TRUE, normalized = TRUE)
