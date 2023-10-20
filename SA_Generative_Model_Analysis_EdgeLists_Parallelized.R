@@ -48,7 +48,7 @@ foreach(i = 1:length(popDataList)) %dopar% {
   popData$Age <- popDataList[[i]]$Age
   
   currentIDs <- popDataList[[i]]$ID
-  focalEdgeList <- edgeLists[[1]][,-1]
+  focalEdgeList <- edgeLists[[i]][,-1]
   pairMatrix <- matrix(data = 0, nrow = length(currentIDs), ncol = length(currentIDs))
   row.names(pairMatrix) <- currentIDs
   colnames(pairMatrix) <- currentIDs
