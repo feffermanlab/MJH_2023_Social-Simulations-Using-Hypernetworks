@@ -17,7 +17,7 @@ maxT = 100
 nNetReps = 12
 
 #Set number of simulations to run per set of parameters
-numberSims = 1500
+numberSims = 1000
 
 #Set inheritance pattern
 #Can be "random" or "parental"
@@ -27,33 +27,25 @@ inheritance = "parental"
 
 #Set levels for age biases
 #This governs the extent to which individuals prioritize associating with older individuals or peers
-#ageBiasSet = c(0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0)
 ageBiasSet = c(0, 0.5, 1.0)
-#ageBiasSet = c(0.5)
 
 #Set levels for social selectivity
 #These parameters govern how rapidly an individual prioritizes established relationships over developing new ones as they age
-#selectiveSet = c(0, 0.04, 0.08, 0.10, 0.125, 0.16, 0.20)
 selectiveSet = c(0, 0.10, 0.20)
-#selectiveSet = c(0.10)
 
 #Create folders in which to store simulation results
-#sim_details includes individual-level parameters at each time step for each simulation
-#sim-summaries includes global-level statistics for each time step for each simulation run
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-#sim_details="Sim-details_diffusionTopologies_paramSweep"
 edge_lists = "Sim-edgeLists_diffusionTopologies_paramSweep"
 incidence_mats = "Sim-incidMat_diffusionTopologies_paramSweep"
 sim_popData = "Sim-popData_diffusionTopologies_paramSweep"
 livingPopData = "Sim-livingPopData_diffusionTopologies_paramSweep"
-#if(!file.exists(sim_details)) dir.create(sim_details)
 if(!file.exists(edge_lists)) dir.create(edge_lists)
 if(!file.exists(incidence_mats)) dir.create(incidence_mats)
 if(!file.exists(sim_popData)) dir.create(sim_popData)
 if(!file.exists(livingPopData)) dir.create(livingPopData)
 
 #ageDist <- generate_age_structure(1000, maxIter = 20000)
-ageDist <- read.csv("~/scratch/SA_HyperNets/Run1/Initial Age Distribution.csv", header = TRUE)[,2]
+ageDist <- read.csv("", header = TRUE)[,2]
 
 #Set random seed
 set.seed(08262023)
@@ -86,14 +78,6 @@ for(a in 1:length(ageBiasSet)) {
       
       popNetwork <- generate_ER_hypergraph(v = N, m = E, p = p)
       
-      #Identify for each individual which individuals it has previously associated with (based on the initial random hypergraph)
-      #To do this, I need to transform the hypergraph to its dual and extract its linegraph with s = 1
-      #Then, an individual will be directly connected to its associates in the line graph
-      dualPopNetwork <- get_dual_hypergraph(hypNet = popNetwork, popData = popData)
-      
-      #Produces s-line graph where the vertices correspond to the individuals
-      dualLineGraph <- get_s_line_graph(hypNet = dualPopNetwork, size = 1, mode = "edgeList")
-      
       #Create array to hold preference matrices for each time step
       preferenceMatrices <- initialize_preference_matrix(N = N, maxT = maxT, currentPartners = popNetwork)
       
@@ -104,7 +88,6 @@ for(a in 1:length(ageBiasSet)) {
         #Create empty vector to hold dyadic partner selection data
         pairList <- c()
         
-        #Possible speed boost point
         #Allow for groups to form based on individuals' dyadic preferences
         for(k in 1:nNetReps){
           partners <- select_partners(prefMatrix = preferenceMatrices, popData = popData, t = timeStep)
@@ -151,7 +134,6 @@ for(a in 1:length(ageBiasSet)) {
       currentPrefMat <- preferenceMatrices[[timeStep + 1]]
       preferenceMatrices <- lapply(1:maxT, matrix, data = 0, nrow = N, ncol = N)
       preferenceMatrices[[1]] <- currentPrefMat
-      #outputSteps <- (1:maxT %% 5) == 0
       outputSteps <- c(rep(FALSE, maxT/2), ((maxT/2 + 1):maxT %% 5) == 0)
       
       #Begin running through time steps
@@ -177,8 +159,8 @@ for(a in 1:length(ageBiasSet)) {
         
         
         #Output pairwise edge list and hypergraph incidence matrix (only do this every 5 steps during the final 100 timesteps of simulation)
-        if(t == maxT) {
-        #if(t %in% (1:maxT)[outputSteps]){
+        #if(t == maxT) {
+        if(t %in% (1:maxT)[outputSteps]){
           write.csv(pairList, file = file.path(edge_lists, sprintf("edgeData_%s_%.2f_%.2f_%02i_%03i.csv", run_ID, ageBias, selectGradient, s, timeStep)))
           currentIncidenceMatrix <- get_incidence_matrix(hyperNetwork = currentPartners, vertices = popData$ID[which(popData$Alive == "Y")])
           write.csv(currentIncidenceMatrix, file = file.path(incidence_mats, sprintf("incidMat_%s_%.2f_%.2f_%02i_%03i.csv", run_ID, ageBias, selectGradient, s, timeStep)))

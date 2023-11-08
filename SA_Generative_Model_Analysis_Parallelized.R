@@ -8,11 +8,11 @@ library(doParallel)
 registerDoParallel(cores = 20)
 
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_networkData="Sim-networkData_diffusionTopologies_paramSweep_Str"
+sim_networkData="Sim-networkData_diffusionTopologies_paramSweep"
 if(!file.exists(sim_networkData)) dir.create(sim_networkData)
 
-popDataList <- importCSVs(path = "/home/mhasenja/scratch/SA_HyperNets/Run5/Sim-livingPopData_diffusionTopologies_paramSweep/")
-incidMatList <- importCSVs(path = "/home/mhasenja/scratch/SA_HyperNets/Run5/Sim-incidMat_diffusionTopologies_paramSweep/")
+popDataList <- importCSVs(path = "")
+incidMatList <- importCSVs(path = "")
 
 popData <- data.frame("simID" = rep(0, 100),
                       "ID" = 0,
@@ -34,12 +34,9 @@ popData <- data.frame("simID" = rep(0, 100),
                       "Strength" = 0)
 
 foreach(i = 1:length(popDataList)) %dopar% {
-  # startIndex = (i * 100) - 99
-  # endIndex  = (i * 100)
   simIDTemp = ceiling(i/10)
   nameLength = nchar(names(popDataList)[[i]])
   timeTemp = as.integer(substring(names(popDataList)[[i]], nameLength - 6, nameLength - 4))
-  #popData[startIndex:endIndex, "ID"] <- popDataList[[i]]$ID
   popData$ID <- popDataList[[i]]$ID
   popData$simID <- simIDTemp
   popData$ID.SimID <- paste(popData$ID, popData$simID, sep = ".")
