@@ -10,7 +10,7 @@ registerDoParallel(cores = 20)
 
 #Set global parameters that do not change across simulations
 #Parameters needed to generate initial hypergraph: are population size, number of hyperedges, and probability of hyperedge membership
-N = 250
+N = 100
 maxT = 100
 nNetReps = 12
 
@@ -98,8 +98,8 @@ foreach(s = 1:numberSims) %dopar% {
   }
   #write.csv(pairList, file = file.path(edge_lists, sprintf("edgeData_%s_%.2f_%02i_%03i.csv", run_ID, selectGradient, s, timeStep)))
   currentIncidenceMatrix <- get_incidence_matrix(hyperNetwork = currentPartners, vertices = popData$ID)
-  write.csv(currentIncidenceMatrix, file = file.path(incidence_mats, sprintf("incidMat_%s_%.2f_%02i_%03i.csv", run_ID, selectGradient, s, timeStep)))
-  write.csv(popData, file = file.path(sim_popData, sprintf("popData_%s_%.2f_%02i.csv", run_ID, selectGradient, s)))
+  write.csv(currentIncidenceMatrix, file = file.path(incidence_mats, sprintf("incidMat_%s_%02i_%03i.csv", run_ID, s, timeStep)))
+  write.csv(popData, file = file.path(sim_popData, sprintf("popData_%s_%02i.csv", run_ID, s)))
   
 }
 
