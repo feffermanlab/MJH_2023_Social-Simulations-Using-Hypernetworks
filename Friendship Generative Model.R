@@ -10,7 +10,7 @@ registerDoParallel(cores = 20)
 
 #Set global parameters that do not change across simulations
 #Parameters needed to generate initial hypergraph: are population size, number of hyperedges, and probability of hyperedge membership
-N = 1000
+N = 250
 maxT = 100
 nNetReps = 12
 
