@@ -4,7 +4,7 @@ library(doParallel)
 
 registerDoParallel(cores = 20)
 
-diffDataList <- importCSVs(path = "")
+diffDataList <- importCSVs(path = "~/scratch/Bonding_HyperNets/Run3_Nov23/Sim-details_higherOrderContagion_Weights_GoGvsHyp_NetMets/")
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
@@ -21,8 +21,8 @@ maxTime <- max(diffDataTemp$acquisitionTime)
 
 diffusionCurveData <- data.frame("uniqueID" = rep(s, maxTime),
                                  "topologyID" = 0,
-                                 "ageBias" = 0,
-                                 "selectGrad" = 0,
+                                 # "ageBias" = 0,
+                                 # "selectGrad" = 0,
                                  "socialReinforcement" = 0, 
                                  "seedStrategy" = 0,
                                  "groupEffect" = 0,
@@ -37,8 +37,8 @@ diffusionCurveData <- data.frame("uniqueID" = rep(s, maxTime),
                                  "meanSeedSED" = 0)
 
   diffusionCurveData$topologyID <- diffDataTemp$simID[1]
-  diffusionCurveData$ageBias <- diffDataTemp$ageBias[1]
-  diffusionCurveData$selectGrad <- diffDataTemp$selectGrad[1]
+  # diffusionCurveData$ageBias <- diffDataTemp$ageBias[1]
+  # diffusionCurveData$selectGrad <- diffDataTemp$selectGrad[1]
   diffusionCurveData$socialReinforcement <- diffDataTemp$socialReinforcement[1]
   diffusionCurveData$seedStrategy <- diffDataTemp$seedStrategy[1]
   diffusionCurveData$groupEffect <- diffDataTemp$groupEffect[1]
@@ -58,8 +58,8 @@ diffusionCurveData <- data.frame("uniqueID" = rep(s, maxTime),
   diffusionCurveData_T50 <- data.frame(
     "uniqueID" = diffusionCurveData$uniqueID[1],
     "topologyID" = diffusionCurveData$topologyID[1],
-    "ageBias" = diffusionCurveData$ageBias[1],
-    "selectGrad" = diffusionCurveData$selectGrad[1],
+    # "ageBias" = diffusionCurveData$ageBias[1],
+    # "selectGrad" = diffusionCurveData$selectGrad[1],
     "socialReinforcement" = diffusionCurveData$socialReinforcement[1],
     "seedStrategy" = diffusionCurveData$seedStrategy[1],
     "groupEffect" = diffusionCurveData$groupEffect[1],
