@@ -21,7 +21,8 @@ sim_details="Sim-details_edgeListContagion_Weights_AgeStrats"
 if(!file.exists(sim_details)) dir.create(sim_details)
 
 #Set random seed to ensure repeatability
-set.seed(10092023)
+#set.seed(10092023)
+set.seed(02072024)
 
 #Set simulation-wide parameters
 initialInformed = 3
