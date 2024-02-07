@@ -15,8 +15,6 @@ stopifnot(dir.exists("Sim-incidMat_diffusionTopologies_paramSweep/"))
 edgeLists <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-edgeLists_diffusionTopologies_paramSweep/")
 incidMats <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-incidMat_diffusionTopologies_paramSweep/")
 
-focalEdgeList <- read.csv("C://Users/matth/Desktop/Aging and Sociality/Manuscript data/Sim-edgeLists_diffusionTopologies_paramSweep/edgeData_d320230919143437_0.00_0.00_01_100.csv", header = TRUE)[,-1]
-
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
 sim_details="Sim-details_edgeListContagion_Weights_AgeStrats"
