@@ -14,6 +14,7 @@ stopifnot(dir.exists("Sim-incidMat_diffusionTopologies_paramSweep/"))
 #Import incidence matrices
 edgeLists <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-edgeLists_diffusionTopologies_paramSweep/")
 incidMats <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-incidMat_diffusionTopologies_paramSweep/")
+popData <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-livingPopData_diffusionTopologies_paramSweep/")
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
@@ -21,8 +22,7 @@ sim_details="Sim-details_edgeListContagion_Weights_AgeStrats"
 if(!file.exists(sim_details)) dir.create(sim_details)
 
 #Set random seed to ensure repeatability
-#set.seed(10092023)
-set.seed(02072024)
+set.seed(10092023)
 
 #Set simulation-wide parameters
 initialInformed = 3
@@ -64,6 +64,8 @@ foreach(i = 1:length(incidMats)) %dopar% {
                           "ageBias" = as.numeric(substring(names(incidMats[i]), 27, 30)),
                           "selectGrad" = as.numeric(substring(names(incidMats[i]), 32, 35)),
                           "ID" = currentIDs,
+                          "ID2" = popData[[i]]$ID,
+                          "GSPref" = popData[[i]]$GSPref,
                           "degree" = 0,
                           "betweenness" = 0, 
                           "strength" = 0,
@@ -74,12 +76,12 @@ foreach(i = 1:length(incidMats)) %dopar% {
                           "acquisitionTime" = 0, 
                           "initDemons" = 0)
 
-  #focalData$degree <- as.vector(degree(GoGgraph))
-  #focalData$betweenness <- as.vector(betweenness(GoGgraph, directed = FALSE, normalized = TRUE, weights = 1/edge.attributes(GoGgraph)$weight))
-  #focalData$strength <- as.vector(strength(GoGgraph, loops = FALSE, mode = "all"))
-  #focalData$siD <- get_s_degree(hypergraph = dualIncidMat, smax = 7, vertexNames = currentIDs, mode = "incidence")[[2]]
-  #focalData$siBC <- get_s_betweenness(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
-  #focalData$subEdgeDens <- sapply(focalData$ID, function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
+  focalData$degree <- as.vector(degree(GoGgraph))
+  focalData$betweenness <- as.vector(betweenness(GoGgraph, directed = FALSE, normalized = TRUE, weights = 1/edge.attributes(GoGgraph)$weight))
+  focalData$strength <- as.vector(strength(GoGgraph, loops = FALSE, mode = "all"))
+  focalData$siD <- get_s_degree(hypergraph = dualIncidMat, smax = 7, vertexNames = currentIDs, mode = "incidence")[[2]]
+  focalData$siBC <- get_s_betweenness(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
+  focalData$subEdgeDens <- sapply(focalData$ID, function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
 
   startingData <- focalData
   
