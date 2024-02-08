@@ -20,7 +20,7 @@ foreach(s = 1:length(simData)) %dopar% {
   
   simIDTemp <- simDataTemp$simID[1]
   
-  simIDTemp <- ifelse((simIDTemp %% 1000) > 0, simIDTemp %% 1000, 1000) 
+  simIDMod <- ifelse((simIDTemp %% 1000) > 0, simIDTemp %% 1000, 1000) 
   
   ageSelIndex <- ifelse(simDataTemp$ageBias[1] == 0 & simDataTemp$selectGrad[1] == 0, 0, 
                         ifelse(simDataTemp$ageBias[1] == 0 & simDataTemp$selectGrad[1] == 0.1, 1000, 
@@ -31,7 +31,7 @@ foreach(s = 1:length(simData)) %dopar% {
                                                            ifelse(simDataTemp$ageBias[1] == 1 & simDataTemp$selectGrad[1] == 0, 6000, 
                                                                   ifelse(simDataTemp$ageBias[1] == 1 & simDataTemp$selectGrad[1] == 0.1, 7000, 8000))))))))
   
-  popDataTemp <- popData[[(simIDTemp + ageSelIndex)]]
+  popDataTemp <- popData[[(simIDMod + ageSelIndex)]]
   
 
   simDataTemp$GSPref <- popDataTemp$GSPref
