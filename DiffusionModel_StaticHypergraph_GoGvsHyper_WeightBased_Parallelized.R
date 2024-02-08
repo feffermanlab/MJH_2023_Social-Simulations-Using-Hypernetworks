@@ -12,7 +12,8 @@ registerDoParallel(cores = 20)
 stopifnot(dir.exists("Sim-incidMat_diffusionTopologies_paramSweep/"))
 
 #Import incidence matrices
-incidMats <- importCSVs(path = "~/scratch/Bonding_HyperNets/Run3_Nov23/Sim-incidMat_diffusionTopologies_paramSweep/")
+incidMats <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-incidMat_diffusionTopologies_paramSweep/")
+popData <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-livingPopData_diffusionTopologies_paramSweep/")
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
@@ -30,12 +31,12 @@ lambda = 0.025
 
 #seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestBetweenness, seedStrategy_highestStrength,
 #  seedStrategy_highestsiD, seedStrategy_highestsiBC, seedStrategy_highestSED)
-seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestStrength, seedStrategy_highestsiD)
-#seedStrategySet <- c(seedStrategy_Oldest, seedStrategy_randomAge)
+#seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestStrength, seedStrategy_highestsiD)
+seedStrategySet <- c(seedStrategy_Oldest, seedStrategy_randomAge)
 
 #seedStrategyNames <- c("highestDegree", "highestBetweenness", "highestStrength", "highestsiD", "highestsiBC", "highestSED")
-seedStrategyNames <- c("highestDegree", "highestStrength", "highestsiD")
-#seedStrategyNames <- c("Oldest", "randomAge")
+#seedStrategyNames <- c("highestDegree", "highestStrength", "highestsiD")
+seedStrategyNames <- c("Oldest", "randomAge")
 
 #Determines whether probability of learning decreases within increasing group/hyperedge size
 groupInterferenceEffect <- c("groupSizeIndependent", "groupSizeDependent")
@@ -48,6 +49,7 @@ foreach(i = 1:length(incidMats)) %dopar% {
   
   #Set up appropriate (hyper)graphs for current incidence matrix
   currentIDs <- incidMats[[i]][,1]
+  IDMatch <- sum(currentIDs == popData[[i]]$ID)
   focalIncidMat <- as.matrix(incidMats[[i]][,-1])
   focalIncidMat <- as.matrix(focalIncidMat[,-dim(focalIncidMat)[2]])
   row.names(focalIncidMat) <- currentIDs
@@ -61,8 +63,8 @@ foreach(i = 1:length(incidMats)) %dopar% {
   simID = i
   
   focalData <- data.frame("simID" = simID, 
-                          #"ageBias" = as.numeric(substring(names(incidMats[i]), 27, 30)),
-                          #"selectGrad" = as.numeric(substring(names(incidMats[i]), 32, 35)),
+                          "ageBias" = as.numeric(substring(names(incidMats[i]), 27, 30)),
+                          "selectGrad" = as.numeric(substring(names(incidMats[i]), 32, 35)),
                           "ID" = currentIDs,
                           "degree" = 0,
                           "betweenness" = 0, 
@@ -72,14 +74,16 @@ foreach(i = 1:length(incidMats)) %dopar% {
                           "subEdgeDens" = 0,
                           "knowledgeState" = 0,
                           "acquisitionTime" = 0, 
-                          "initDemons" = 0)
+                          "initDemons" = 0,
+                          "IDMatch" = IDMatch,
+                          "GSPref" = popData[[i]]$GSPref)
 
   focalData$degree <- as.vector(degree(GoGgraph))
-  #focalData$betweenness <- as.vector(betweenness(GoGgraph, directed = FALSE, normalized = TRUE, weights = 1/edge.attributes(GoGgraph)$weight))
+  focalData$betweenness <- as.vector(betweenness(GoGgraph, directed = FALSE, normalized = TRUE, weights = 1/edge.attributes(GoGgraph)$weight))
   focalData$strength <- as.vector(strength(GoGgraph, loops = FALSE, mode = "all"))
   focalData$siD <- get_s_degree(hypergraph = dualIncidMat, smax = 7, vertexNames = currentIDs, mode = "incidence")[[2]]
-  #focalData$siBC <- get_s_betweenness(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
-  #focalData$subEdgeDens <- sapply(focalData$ID, function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
+  focalData$siBC <- get_s_betweenness(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
+  focalData$subEdgeDens <- sapply(focalData$ID, function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
 
   startingData <- focalData
   
