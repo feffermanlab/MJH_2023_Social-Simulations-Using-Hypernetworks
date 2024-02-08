@@ -11,7 +11,7 @@ popData <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-livingPopData_diff
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_details = "Sim-details_higherOrderContagion_Weights_GoGvsHyp_paramSweep_AgeStrats_withGSPref"
+sim_details = "Sim-details_higherOrderContagion_Weights_GoGvsHyp_paramSweep_AgeStrats_withGSPref_2"
 if(!file.exists(sim_details)) dir.create(sim_details)
 
 foreach(s = 1:length(simData)) %dopar% {
