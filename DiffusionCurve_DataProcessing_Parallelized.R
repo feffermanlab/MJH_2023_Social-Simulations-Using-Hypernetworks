@@ -4,12 +4,12 @@ library(doParallel)
 
 registerDoParallel(cores = 20)
 
-diffDataList <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-details_higherOrderContagion_Weights_GoGvsHyp_paramSweep_AgeStrats_withGSPref/")
+diffDataList <- importCSVs(path = "~/scratch/SA_HyperNets/Run8/Sim-details_higherOrderContagion_Weights_GoGvsHyp_paramSweep_AgeStrats/")
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_diffCurveData="Sim-diffCurveData_higherOrderContagion_Weights_GoGvsHyp_paramSweep_AgeStrats_withGSPref"
-sim_T50="Sim-T50_higherOrderContagion_Weights_GoGvsHyp_paramSweep_AgeStrats_withGSPref"
+sim_diffCurveData="Sim-diffCurveData_higherOrderContagion_Weights_GoGvsHyp_paramSweep_AgeStrats"
+sim_T50="Sim-T50_higherOrderContagion_Weights_GoGvsHyp_paramSweep_AgeStrats"
 if(!file.exists(sim_diffCurveData)) dir.create(sim_diffCurveData)
 if(!file.exists(sim_T50)) dir.create(sim_T50)
 
