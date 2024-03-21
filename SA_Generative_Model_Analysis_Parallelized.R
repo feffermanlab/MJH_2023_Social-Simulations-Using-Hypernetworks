@@ -8,7 +8,7 @@ library(doParallel)
 registerDoParallel(cores = 20)
 
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_networkData="Sim-networkData_diffusionTopologies_paramSweep_Feb2024"
+sim_networkData="Sim-networkData_diffusionTopologies_paramSweep_Mar2024"
 if(!file.exists(sim_networkData)) dir.create(sim_networkData)
 
 popDataList <- importCSVs(path = "~/scratch/SA_HyperNets/Run5/Sim-livingPopData_diffusionTopologies_paramSweep/")
@@ -61,7 +61,7 @@ foreach(i = 1:length(popDataList)) %dopar% {
   
   currentIDs <- incidMatList[[i]][,1]
   focalIncidMat <- as.matrix(incidMatList[[i]][,-1])
-  focalIncidMat <- as.matrix(focalIncidMat[,-dim(focalIncidMat)[2]])
+  #focalIncidMat <- as.matrix(focalIncidMat[,-dim(focalIncidMat)[2]])
   row.names(focalIncidMat) <- currentIDs
   colnames(focalIncidMat) <- seq(from = 1, to = dim(focalIncidMat)[2])
   dualIncidMat <- t(focalIncidMat)
