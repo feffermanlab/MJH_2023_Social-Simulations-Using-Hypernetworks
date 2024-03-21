@@ -60,7 +60,8 @@ get_s_line_graph <- function(hypNet, size, vertexNames, mode){
     colnames(matrixTemp) <- vertexNames
     hyperEdgeSizes <- sapply(seq(from = 1, to = ncol(hypNet)), function(x) sum(hypNet[,x] > 0))
     hyperEdgeIndices <- which(hyperEdgeSizes >= size)
-    hyperEdgeIndices <- hyperEdgeIndices[which(hyperEdgeIndices != ncol(hypNet))]
+    #What is the purpose of the following line? Is it supposed to be sizes?
+    #hyperEdgeIndices <- hyperEdgeIndices[which(hyperEdgeIndices != ncol(hypNet))]
     if(length(hyperEdgeIndices) > 1) {
     for(i in hyperEdgeIndices) {
       refVect <- as.vector(which(hypNet[,i]>0))
@@ -1038,4 +1039,228 @@ update_friendship_matrix <- function(prefMatrices, popData, timeStep, currentPar
   # }
   diag(currentMatrix) <- 0
   return(currentMatrix)
+}
+
+
+dijkstra <- function(G, s) {
+  S <- vector("character")
+  oldw <- getOption("warn")
+  options(warn = -1)
+  djkTable <- data.table(ID = sort(names(G)),
+                         P = list(), 
+                         D = numeric(),
+                         sigma = 0,
+                         Visited = 0)
+  on.exit(options(warn = oldw))
+  djkTable[ID==s,sigma := 1]
+  
+  Q <- list()
+  push <- function(Q, element) {
+    Q <- append(Q, list(element))
+    Q <- Q[order(sapply(Q, function(x) x[[1]]))]
+    return(Q)
+  }
+  
+  pop <- function(Q) {
+    element <- Q[[1]]
+    Q <- Q[-1]
+    return(list(Q,list(as.numeric(element[[1]]), element[[2]], element[[3]], element[[4]])))
+  }
+  
+  seen <- list()
+  seen[[s]] <- 0
+  c <- 1
+  next_c <- function() {
+    c <<- c + 1
+    return(c - 1)
+  }
+  #I wonder if I can modify this to use data.table, as I think it will be much simpler with a data.frame
+  Q <- push(Q, c(as.numeric(0), as.numeric(next_c()), s, s))
+  while (length(Q) > 0) {
+    poppedQ <- pop(Q)
+    Q <- poppedQ[[1]]
+    element <- poppedQ[[2]]
+    dist <- as.numeric(element[[1]])
+    pred <- element[[3]]
+    v <- element[[4]]
+    
+    if (djkTable[ID == v, Visited] == 1) {
+      next
+    }
+    
+    djkTable[ID == v, sigma := djkTable[ID == v, sigma] +  djkTable[ID == pred, sigma]]
+    S <- c(S, v)
+    djkTable[ID == v, D := as.numeric(dist)]
+    djkTable[ID == v, Visited := 1]
+    
+    for (w in names(G[[v]])) {
+      vw_dist <- dist + G[[v]][[w]]
+      if (djkTable[ID == w, Visited] == 0 && (!(w %in% names(seen)) || vw_dist < seen[[w]])) {
+        seen[[w]] <- vw_dist
+        Q <- push(Q, c(round(vw_dist, 15), next_c(), v, w))
+        djkTable[ID == w, sigma := 0]
+        djkTable[ID == w, P := list(c(v))]
+      } else if (vw_dist == seen[[w]]) {
+        djkTable[ID == w, sigma := djkTable[ID == w, sigma] + djkTable[ID == v, sigma]]
+        djkTable[ID == w, P := unlist(c(djkTable[ID == w, P], v))]
+      }
+    }
+  }
+  
+  # The initialization of the algorithm makes sigma values double.
+  # So we can return the exact values by dividing by 2.
+  djkTable[,sigma := djkTable[,sigma]/2]
+  
+  return(djkTable[order(D)])
+}
+
+function4 <- function(node, window, nodes, graph, timestamp, alpha) {
+  betweenness <- numeric(length(nodes))
+  names(betweenness) <- sort(nodes)
+  
+  dummyNode <- paste(node, -1, sep = ".")
+  nodes <- c(nodes, dummyNode)
+  dummyEdges <- data.table("ID1" = character(), "ID2" = character(), "time1" = numeric(), "time2" = numeric(), "Weight" = numeric())
+  for(t in (timestamp - window + 1):timestamp){
+    if(paste(node,t,sep = ".") %in% nodes) {
+      dummyEdge <- data.table("ID1" = node, "ID2" = node, "time1" = -1, "time2" = t, "Weight" = 0)
+      dummyEdges <- rbind(dummyEdge, dummyEdges)
+    }
+  }
+  E_prime_u <- rbind(graph, dummyEdges)
+  
+  node_prime <- dummyNode
+  
+  E_prime_u$ID1.t <- paste(E_prime_u$ID1, E_prime_u$time1, sep = ".")
+  E_prime_u$ID2.t <- paste(E_prime_u$ID2, E_prime_u$time2, sep = ".")
+  G <- list()
+  for(r in 1:nrow(E_prime_u)) {
+    ID1 <- E_prime_u[r,"ID1.t"]
+    ID2 <- E_prime_u[r,"ID2.t"]
+    if(E_prime_u$time1[r] == E_prime_u$time2[r]) {
+      G[[ID1]][ID2] <- list(E_prime_u[r,"Weight"])
+      G[[ID2]][ID1] <- list(E_prime_u[r,"Weight"])
+    } else {
+      G[[ID1]][ID2] <- list(E_prime_u[r,"Weight"])
+      #Does this work? Update: Why is this here...??
+      #G[[ID2]][ID2] <- 1
+    }
+  }
+  
+  result <- dijkstra(G=G, s=node_prime)
+  S <- result[!(is.na(D)),ID]
+  P <- result[!(is.na(D)),P]
+  names(P) <- S
+  #Sigma indicates number of shortest paths
+  sigma <- result[!(is.na(D)),sigma]
+  names(sigma) <- S
+  D <- result[!(is.na(D)),D]
+  
+  D_prime <- numeric()
+  S_prime <- character(0)
+  #Sigma_prime indicates number of shortest-fastest paths
+  sigma_prime <- numeric(length(S))
+  names(sigma_prime) <- S
+  
+  for (x in S) {
+    nodeTemp <- sub("\\..*", "", x)
+    #Had to modify the following from *..
+    timeTemp <- as.numeric(sub('.*\\.', "", x))
+    if (timeTemp != -1 && (!(nodeTemp %in% names(D_prime)) || result[ID==x,D] == D_prime[nodeTemp])) {
+      D_prime[nodeTemp] <- result[ID==x,D]
+      S_prime <- c(S_prime, x)
+      sigma_prime[x] <- result[ID==x,sigma]
+    } else {
+      sigma_prime[x] <- 0
+    }
+  }
+  
+  betweenness <- brandes_algo(betweenness = betweenness, S = S, P = P, sigma = sigma, sigma_prime = sigma_prime, s = node)
+  return(betweenness)
+}
+
+brandes_algo <- function(betweenness,S, P, sigma, sigma_prime,s) {
+  delta <- numeric(length(sigma))
+  names(delta) <- names(sigma)
+  
+  while(length(S) > 0){
+    x <- S[length(S)]
+    S <- S[-length(S)]
+    coeff <- ((sigma_prime[x]/sigma[x])+delta[x])/sigma[x]
+    nodeTemp <- sub("\\..*", "", x)
+    timeTemp <- as.numeric(sub('.*\\.', "", x))
+    for(v in P[[x]]) {
+      pNodeTemp <- sub("\\..*", "", v)
+      pTimeTemp <- as.numeric(sub('.*\\.', "", v))
+      if(pTimeTemp != -1) {
+        delta[v] <- delta[v] + (sigma[v] * coeff)
+      }
+    }
+    if(nodeTemp != s) {
+      betweenness[x] <- betweenness[x] + delta[x]
+    }
+  }
+  return(betweenness)
+}
+
+#Probably should call this function something else (get_temporal_transformation perhaps?)
+get_temporal_edge_list <- function(edgeList, window, timestamp, alpha = NULL) {
+  W = seq(from = timestamp - (window - 1), to = timestamp)
+  
+  E_prime <- data.frame("ID1" = character(),
+                        "ID2" = character(),
+                        "Time1" = numeric(),
+                        "Time2" = numeric(),
+                        "Weight" = numeric())
+  
+  # Update E' by taking the union of pairs ((u, t), (v, t), alpha)
+  E_prime <- edgeList[which(edgeList$time1 >= min(W) & edgeList$time2 <= timestamp),]
+  E_prime$Weight <- alpha
+  
+  vertexTuples <- sort(unique(c(paste(E_prime$ID1,E_prime$time1,sep = ","),paste(E_prime$ID2,E_prime$time1,sep = ","))))
+  ID = sub(",.*", "", vertexTuples)
+  Time <- as.numeric(sub(".*,", "", vertexTuples))
+  vertexCopies <- data.frame("ID" = ID, "Time" = Time)
+  
+  # Further update E' by taking the union of pairs ((v, t), (v, t'), (1 - alpha)(t' - t))
+  E_self_IDs <- as.vector(unlist(sapply(unique(vertexCopies$ID), function(x) rep(x,nrow(vertexCopies[ID == x,])-1))))
+  
+  E_self_time1 <- as.vector(unlist(sapply(unique(E_self_IDs), function(x) vertexCopies[ID == x,"Time"][1:(length(vertexCopies[ID == x,"Time"])-1)])))
+  E_self_time2 <- as.vector(unlist(sapply(unique(E_self_IDs), function(x) vertexCopies[ID == x,"Time"][2:length(vertexCopies[ID == x,"Time"])])))
+  E_self <- data.frame("ID1" = E_self_IDs, "ID2" = E_self_IDs, 
+                       "time1" = E_self_time1, "time2" = E_self_time2)
+  E_self$Weight <- (1-alpha)*(E_self$time2 - E_self$time1)
+  
+  E_prime <- rbind(E_prime, E_self)
+  return(E_prime)
+}
+
+get_temporal_betweenness_centrality <- function(edgeList, alpha, window, timestamp, normalized = FALSE){
+  
+  E_prime <- get_temporal_edge_list(edgeList = edgeList, window = window, timestamp = timestamp, alpha = alpha)
+  vertices <- sort(unique(c(E_prime$ID1, E_prime$ID2)))
+  TBCList <- vector("list", length(vertices))
+  names(TBCList) <- vertices
+  
+  nodes = sort(unique(c(paste(E_prime$ID1, E_prime$time1, sep = "."), paste(E_prime$ID2, E_prime$time2, sep = "."))))
+  
+  for(i in vertices) {
+    TBCList[i] <- list(function4(node = i, window = window, nodes = nodes, graph = E_prime, timestamp = timestamp, alpha = alpha))
+  }
+  
+  TBC <- numeric(length(vertices))
+  names(TBC) <- vertices
+  TBCMatrix <- do.call(rbind,TBCList)
+  TBCTemp <- colSums(TBCMatrix)
+  
+  for(i in names(TBCTemp)) {
+    nodeTemp <- sub("\\..*", "", i)
+    TBC[nodeTemp] <- TBC[nodeTemp] + TBCTemp[i]
+  }
+  
+  if(normalized) {
+    TBC <- (TBC - min(TBC))/(max(TBC)-min(TBC))
+  }
+  
+  return(TBC)
 }

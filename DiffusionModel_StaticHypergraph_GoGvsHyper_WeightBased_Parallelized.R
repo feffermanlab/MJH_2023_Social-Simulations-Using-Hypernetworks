@@ -49,9 +49,9 @@ foreach(i = 1:length(incidMats)) %dopar% {
   
   #Set up appropriate (hyper)graphs for current incidence matrix
   currentIDs <- incidMats[[i]][,1]
-  IDMatch <- sum(currentIDs == popData[[i]]$ID)
+  #IDMatch <- sum(currentIDs == popData[[i]]$ID)
   focalIncidMat <- as.matrix(incidMats[[i]][,-1])
-  focalIncidMat <- as.matrix(focalIncidMat[,-dim(focalIncidMat)[2]])
+  #focalIncidMat <- as.matrix(focalIncidMat[,-dim(focalIncidMat)[2]])
   row.names(focalIncidMat) <- currentIDs
   colnames(focalIncidMat) <- seq(from = 1, to = dim(focalIncidMat)[2])
   dualIncidMat <- t(focalIncidMat)
@@ -81,7 +81,7 @@ foreach(i = 1:length(incidMats)) %dopar% {
   focalData$degree <- as.vector(degree(GoGgraph))
   focalData$betweenness <- as.vector(betweenness(GoGgraph, directed = FALSE, normalized = TRUE, weights = 1/edge.attributes(GoGgraph)$weight))
   focalData$strength <- as.vector(strength(GoGgraph, loops = FALSE, mode = "all"))
-  focalData$siD <- get_s_degree(hypergraph = dualIncidMat, smax = 7, vertexNames = currentIDs, mode = "incidence")[[2]]
+  focalData$siD <- get_s_degree(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
   focalData$siBC <- get_s_betweenness(hypergraph = dualIncidMat, smax = 6, vertexNames = currentIDs, mode = "incidence")[[2]]
   focalData$subEdgeDens <- sapply(focalData$ID, function(x) get_local_subedge_density(hypergraph = focalIncidMat, vertex = x))
 
