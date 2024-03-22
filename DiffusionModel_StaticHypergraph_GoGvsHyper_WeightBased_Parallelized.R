@@ -17,7 +17,7 @@ popData <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-livingPopData_diff
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_details="Sim-details_higherOrderContagion_Weights_GoGvsHyp_NetMets"
+sim_details="Sim-details_higherOrderContagion_Weights_GoGvsHyp_NetMets_Mar24"
 if(!file.exists(sim_details)) dir.create(sim_details)
 
 #Set random seed to ensure repeatability
@@ -75,7 +75,7 @@ foreach(i = 1:length(incidMats)) %dopar% {
                           "knowledgeState" = 0,
                           "acquisitionTime" = 0, 
                           "initDemons" = 0,
-                          "IDMatch" = IDMatch,
+                          #"IDMatch" = IDMatch,
                           "GSPref" = popData[[i]]$GSPref)
 
   focalData$degree <- as.vector(degree(GoGgraph))
