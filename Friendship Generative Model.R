@@ -59,7 +59,7 @@ foreach(s = 1:numberSims) %dopar% {
     
     preferenceMatrices[[timeStep + 1]] <- update_friendship_matrix(prefMatrices = preferenceMatrices, popData = popData, timeStep = timeStep, currentPartners = pairList)
     
-    if(t %in% (1:maxT)[outputSteps]){
+    if(timeStep %in% (1:maxT)[outputSteps]){
       currentIncidenceMatrix <- get_incidence_matrix(hyperNetwork = currentPartners, vertices = popData$ID)
       write.csv(currentIncidenceMatrix, file = file.path(incidence_mats, sprintf("incidMat_%s_%02i_%03i.csv", run_ID, s, timeStep)))
       }
