@@ -12,8 +12,8 @@ registerDoParallel(cores = 20)
 #stopifnot(dir.exists("Sim-incidMat_diffusionTopologies_paramSweep/"))
 
 #Import incidence matrices
-incidMats <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-incidMat_diffusionTopologies_paramSweep/")
-popData <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-livingPopData_diffusionTopologies_paramSweep/")
+incidMats <- importCSVs(path = "~/scratch/SA_HyperNets/Run6/Sim-incidMat_diffusionTopologies_paramSweep/")
+popData <- importCSVs(path = "~/scratch/SA_HyperNets/Run6/Sim-livingPopData_diffusionTopologies_paramSweep/")
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
@@ -29,16 +29,16 @@ lambda = 0.025
 
 #Set target seed strategy set and names
 
-#seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestBetweenness, seedStrategy_highestStrength,
-#  seedStrategy_highestsiD, seedStrategy_highestsiBC, seedStrategy_highestSED)
+seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestBetweenness, seedStrategy_highestStrength,
+  seedStrategy_highestsiD, seedStrategy_highestsiBC, seedStrategy_highestSED)
 #seedStrategySet <- c(seedStrategy_highestDegree, seedStrategy_highestStrength, seedStrategy_highestsiD)
 #seedStrategySet <- c(seedStrategy_Oldest, seedStrategy_randomAge)
-seedStrategySet <- c(seedStrategy_highestStrength, seedStrategy_highestsiD)
+#seedStrategySet <- c(seedStrategy_highestStrength, seedStrategy_highestsiD)
 
-#seedStrategyNames <- c("highestDegree", "highestBetweenness", "highestStrength", "highestsiD", "highestsiBC", "highestSED")
+seedStrategyNames <- c("highestDegree", "highestBetweenness", "highestStrength", "highestsiD", "highestsiBC", "highestSED")
 #seedStrategyNames <- c("highestDegree", "highestStrength", "highestsiD")
 #seedStrategyNames <- c("Oldest", "randomAge")
-seedStrategyNames <- c("highestStrength", "highestsiD")
+#seedStrategyNames <- c("highestStrength", "highestsiD")
 
 #Determines whether probability of learning decreases within increasing group/hyperedge size
 groupInterferenceEffect <- c("groupSizeIndependent", "groupSizeDependent")
