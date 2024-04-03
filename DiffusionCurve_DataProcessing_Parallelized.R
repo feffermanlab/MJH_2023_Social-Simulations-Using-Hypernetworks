@@ -4,7 +4,7 @@ library(doParallel)
 
 registerDoParallel(cores = 20)
 
-diffDataList <- importCSVs(path = "~/scratch/SA_HyperNets/Run7/Sim-details_higherOrderContagion_Weights_GoGvsHyp_NetMets_Mar24/")
+diffDataList <- importCSVs(path = "~/scratch/SA_HyperNets/Run6/Sim-details_higherOrderContagion_Weights_GoGvsHyp_NetMets_Mar24/")
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
