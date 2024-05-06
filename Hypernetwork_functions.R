@@ -1043,46 +1043,17 @@ update_friendship_matrix <- function(prefMatrices, popData, timeStep, currentPar
 
 push <- function(Q, element) {
   Q <- append(Q, list(element))
-  # #Q <- Q[order(sapply(Q, function(x) x[[1]]))]
-  # #Believe that I need to add the as.numeric for this to function as intended
-  #Q <- Q[order(as.numeric(sapply(Q, function(x) x[[1]])))]
   Q <- Q[order(as.numeric(map(Q, 1)))]
-  # Q <- rbindlist(list(Q,data.table("priorityQueue" = list(element))))
-  # Q <- Q[order(as.numeric(map(Q[,priorityQueue], 1)))]
   return(Q)
 }
 
 pop <- function(Q) {
   element <- Q[[1]]
   Q <- Q[-1]
-  #return(list(Q,list(as.numeric(element[[1]]), element[[2]], element[[3]], element[[4]])))
   return(list(Q,c(element)))
-  # element <- Q[1,]
-  # Q <- Q[-1,]
-  # return(list(Q, element))
 }
 
-
-
 dijkstra <- function(G, s) {
-  
-  #S will contain a sequence of vertices in non-decreasing distance from source node s
-  #S <- vector("character")
-  
-  #Suppress warning when creating data.table
-  # # oldw <- getOption("warn")
-  # # options(warn = -1)
-  # 
-  # #Create data table that includes for each vertex ID (ID)
-  # #its immediate predecessors in all shortest paths from source node s (P)
-  # #the distance of the shortest path from the source node s to that vertex (D)
-  # #the number of shortest paths from the source node s to the vertex (sigma)
-  # #and whether a vertext has been visited by the algorithm yet
-  # # djkTable <- data.table(ID = sort(names(G)),
-  # #                        P = list(),
-  # #                        D = numeric(),
-  # #                        sigma = 0,
-  # #                        Visited = 0)
   
   IDList <- sort(names(G))
   lengthIDList <- length(IDList)
@@ -1091,21 +1062,12 @@ dijkstra <- function(G, s) {
   djkMatrix <- matrix(c(rep(NA,lengthIDList),rep(0,2*lengthIDList)), nrow = lengthIDList, ncol = 3)
   rownames(djkMatrix) <- IDList
   colnames(djkMatrix) <- c("D", "sgm", "V")
-  #djkMatrix
-  # djkTable <- data.table(ID = unique(G[order(ID1),ID1]),
-  #                        P = list(), 
-  #                        D = numeric(),
-  #                        sigma = 0,
-  #                        Visited = 0)
-  # on.exit(options(warn = oldw))
   
   #Initialize by setting the number of shortest paths for the source node s equal to 1
-  #djkTable[ID==s,sigma := 1]
   djkMatrix[s,2] <- 1
   
   #Q will be our priority queue
   Q <- list()
-  #Q <- data.table("priorityQueue" = list())
 
   #seen will indicate the distance of the currently known shortest path from s to each other node
   seen <- list()
@@ -1120,7 +1082,6 @@ dijkstra <- function(G, s) {
     return(c - 1)
   }
   
-  #I wonder if I can modify this to use data.table, as I think it will be much simpler with a data.frame
   
   #Populate the priority queue with the source node s
   #Each entry includes the distance to the source node, the focal predecessor of the node and the vertext name
@@ -1128,14 +1089,12 @@ dijkstra <- function(G, s) {
   
   #Repeat so long as the priority queue is not empty
   while (length(Q) > 0) {
-  # while(nrow(Q) > 0) {
     
     #Pop off the top element of the priority queue (sorted by shortest distance)
     poppedQ <- pop(Q)
     
     #Update priority queue without popped element
     Q <- poppedQ[[1]]
-    #element <- flatten(poppedQ[[2]][,priorityQueue])
     
     #From the popped element, extract distance (of its focal predecessor?), the focal predecessor, and vertex name
     element <- poppedQ[[2]]
@@ -1144,92 +1103,48 @@ dijkstra <- function(G, s) {
     v <- element[4]
     
     #If the node under consideration has already been visited by the algorithm, skip it
-    # if (djkTable[ID == v, Visited] == 1) {
     if(djkMatrix[v,3] == 1) {
       next
     }
     
     #update for vertex v its current sigma value, equal to the number of shortest paths associated with v so far
     #plus all shortest paths associated with the focal predecessor of v
-    
-    # focalRow <- which(djkTable[,ID == v])
-    # newSigma <- djkTable[ID == v, sigma] + djkTable[ID == pred, sigma]
-    # set(djkTable, focalRow, "sigma", newSigma)
-    #djkTable[ID == v, sigma := djkTable[ID == v, sigma] +  djkTable[ID == pred, sigma]]
     djkMatrix[v,2] <- djkMatrix[v,2] + djkMatrix[pred,2]
     
-    #Add v to the list of vertices in non-decreasing distance from source node s
-    #S <- c(S, v)
-    
     #Update current distance of vertex v from source node s
-    #djkTable[ID == v, D := as.numeric(dist)]
-    #set(djkTable, focalRow, "D", as.numeric(dist))
     djkMatrix[v,1] <- dist
+    
     #Indicate that vertex v has been visited
-    #djkTable[ID == v, Visited := 1]
-    #set(djkTable, focalRow, "Visited", 1)
     djkMatrix[v,3] <- 1
-
-    # for (w in names(G[[v]])) {
-    #   vw_dist <- dist + G[[v]][[w]]
-    #   if (djkTable[ID == w, Visited] == 0 && (!(w %in% names(seen)) || vw_dist < seen[[w]])) {
-    #     seen[[w]] <- vw_dist
-    #     Q <- push(Q, c(round(vw_dist, 15), next_c(), v, w))
-    #     djkTable[ID == w, sigma := 0]
-    #     djkTable[ID == w, P := list(c(v))]
-    #   } else if (vw_dist == seen[[w]]) {
-    #     djkTable[ID == w, sigma := djkTable[ID == w, sigma] + djkTable[ID == v, sigma]]
-    #     djkTable[ID == w, P := unlist(c(djkTable[ID == w, P], v))]
-    #   }
-    # }
     
     #Extract each node v is connected to, along with the distances from node v, and add to these the current shortest distance to v (?)  
     vw_dist_vect <- map2_dbl(pluck(G,v), dist, sum)
-    # vw_dist_vect <- G[ID1 == v, Weight] + dist
-    # names(vw_dist_vect) <- G[ID1 == v, ID2]
     
     #For each node connected to v
     for(w in 1:length(vw_dist_vect)){
       
       wName <- names(vw_dist_vect)[w]
       wDist <- as.vector(vw_dist_vect[w])
-      # wRow <- which(djkTable[,ID == wName])
       
       #If a node has not yet been visited by the algorithm and either its name is not in 'seen' or the distance to w from source node s via v is less than the currently known shortest path to w
-      #if (djkTable[ID == names(vw_dist_vect)[w], Visited] == 0 && (!(names(vw_dist_vect)[w] %in% names(seen)) || vw_dist_vect[w] < seen[[w]])) {
-      #if (djkTable[ID == wName, Visited] == 0 && (!(wName %in% names(seen)) || vw_dist_vect[w] < seen[[w]])) {  
       if (djkMatrix[wName,3] == 0 && (!(wName %in% names(seen)) || wDist < seen[[w]])) {
         
         #Update the shortest path distance associated with w in seen
-        # seen[[wName]] <- vw_dist_vect[w]
         seen[[wName]] <- wDist
         
         #Push into the priority queue an entry containing the shortest distance from s to w, , its focal predecessor (i.e., v), and the name of w
         Q <- push(Q, c(as.numeric(round(wDist, 15)), as.numeric(next_c()), v, wName))
         
-        #Initialize the number of shortest paths containing node w to 0
-        #djkTable[ID == names(vw_dist_vect)[w], sigma := 0]
-        #set(djkTable,wRow,"sigma",0)
-        
         #Add v to the list of predecessors of w
-        #djkTable[ID == names(vw_dist_vect)[w], P := list(c(v))]
-        #set(djkTable,wRow,"P",list(c(v)))
         P[[wName]] <- c(v)
         
         #If the distance captured by vw_dist_vect equals the current known shortest path to w:
-      #} else if (vw_dist_vect[w] == seen[[wName]]) {
       } else if (wDist == seen[[wName]]) {
         
         #Add to the number of shortest paths associated with w all the shortest paths to its predecessor v
-        #djkTable[ID == names(vw_dist_vect)[w], sigma := djkTable[ID == names(vw_dist_vect)[w], sigma] + djkTable[ID == v, sigma]]
-        #sigmaTemp <- djkTable[ID == wName, sigma] + djkTable[ID == v, sigma]
-        #set(djkTable,wRow,"sigma",sigmaTemp)
         djkMatrix[wName,2] <- djkMatrix[wName,2] + djkMatrix[v,2]
         
         #Add node v to the list of predecessors of w
-        #djkTable[ID == names(vw_dist_vect)[w], P := unlist(c(djkTable[ID == names(vw_dist_vect)[w], P], v))]
-        # predTemp <- unlist(c(djkTable[ID == wName, P],v))
-        # set(djkTable,wRow,"P",predTemp)
         P[[wName]] <- c(unlist(P[wName]),v)
       }
     }
@@ -1237,16 +1152,7 @@ dijkstra <- function(G, s) {
   
   # The initialization of the algorithm makes sigma values double.
   # So we can return the exact values by dividing by 2.
-  #djkTable[,sigma := djkTable[,sigma]/2]
-  # sigmaList <- djkTable[,sigma]/2
-  # set(djkTable,j = "sigma", value = sigmaList)
   djkMatrix[,2] <- djkMatrix[,2]/2
-  
-  # djkTable <- data.table(ID = unique(G[order(ID1),ID1]),
-  #                        P = list(), 
-  #                        D = numeric(),
-  #                        sigma = 0,
-  #                        Visited = 0)
   
   djkTable <- data.table(ID = IDList, P = P, D = djkMatrix[,1], sigma = djkMatrix[,2], Visited = djkMatrix[,3])
   return(djkTable[order(D)])
@@ -1258,59 +1164,51 @@ function4 <- function(node, window, nodes, graph, timestamp, alpha) {
   
   dummyNode <- paste(node, -1, sep = ".")
   nodes <- c(nodes, dummyNode)
-  dummyEdges <- data.table(ID1 = character(), ID2 = character(), time1 = integer(), time2 = integer(), Weight = numeric())
-  for(t in (timestamp - window + 1):timestamp){
-    if(paste(node,t,sep = ".") %in% nodes) {
-      dummyEdge <- data.table(ID1 = node, ID2 = node, time1 = -1, time2 = t, Weight = 0)
-      dummyEdges <- rbindlist(list(dummyEdge, dummyEdges))
-      #dummyEdges <- rbind(dummyEdge, dummyEdges)
-    }
-  }
+  #dummyEdges <- data.table(ID1 = character(), ID2 = character(), time1 = integer(), time2 = integer(), Weight = numeric())
+  
+  W <- (timestamp - window + 1):timestamp
+  tempNodes <- paste(node,W,sep = ".")
+  nodeIndices <- which(tempNodes %in% nodes)
+  tempNodes <- tempNodes[nodeIndices]
+  dummyEdges <- data.table(ID1 = node, ID2 = node, time1 = -1, time2 = sort(W[nodeIndices], decreasing = FALSE), Weight = 0)
+  # for(t in (timestamp - window + 1):timestamp){
+  #   if(paste(node,t,sep = ".") %in% nodes) {
+  #     dummyEdge <- data.table(ID1 = node, ID2 = node, time1 = -1, time2 = t, Weight = 0)
+  #     dummyEdges <- rbindlist(list(dummyEdge, dummyEdges))
+  #   }
+  # }
   E_prime_u <- rbindlist(list(graph, dummyEdges))
   
   node_prime <- dummyNode
   
   E_prime_u$ID1.t <- paste(E_prime_u$ID1, E_prime_u$time1, sep = ".")
   E_prime_u$ID2.t <- paste(E_prime_u$ID2, E_prime_u$time2, sep = ".")
-
-  # E_prime_u_same <- E_prime_u[time1 == time2]
-  # E_prime_u_diff <- E_prime_u[time1 != time2]
-  # G <- vector("list", length(unique(E_prime_u[,c(ID1.t,ID2.t)])))
-  # names(G) <- unique(E_prime_u[,c(ID1.t,ID2.t)])
-  # for(r in names(G)) {
-  #   subNames <- c(E_prime_u_same[ID1.t == r, ID2.t], 
-  #                 E_prime_u_same[ID2.t == r, ID1.t],
-  #                 E_prime_u_diff[ID1.t == r, ID2.t])
-  #   subWeights <- c(E_prime_u_same[ID1.t == r, Weight], 
-  #                   E_prime_u_same[ID2.t == r, Weight],
-  #                   E_prime_u_diff[ID1.t == r, Weight])
-  #   G[[r]] <- flatten(list(subWeights))
-  #   names(G[[r]]) <- subNames
-  # }
+  E_prime_mat <- as.matrix(E_prime_u[,3:5])
+  E_prime_ID_mat <- as.matrix(E_prime_u[,6:7])
+  timeMatch <- ifelse(E_prime_mat[,1] == E_prime_mat[,2],1,0)
   G<-list()
-  for(r in 1:nrow(E_prime_u)) {
-    ID1 <- E_prime_u[r,"ID1.t"]
-    ID2 <- E_prime_u[r,"ID2.t"]
-    if(E_prime_u$time1[r] == E_prime_u$time2[r]) {
-      #G[[ID1]][ID2] <- list(E_prime_u[r,"Weight"])
-      G[[unlist(ID1)]][unlist(ID2)] <- E_prime_u[r,"Weight"]
-      G[[unlist(ID2)]][unlist(ID1)] <- E_prime_u[r,"Weight"]
+  
+  for(r in 1:length(timeMatch)) {
+    if(timeMatch[r] == 1) {
+      G[[E_prime_ID_mat[r,1]]][[E_prime_ID_mat[r,2]]] <- as.vector(E_prime_mat[r,3])
+      G[[E_prime_ID_mat[r,2]]][[E_prime_ID_mat[r,1]]] <- as.vector(E_prime_mat[r,3])
     } else {
-      G[[unlist(ID1)]][unlist(ID2)] <- E_prime_u[r,"Weight"]
-      #Does this work? Update: Why is this here...??
-      #G[[ID2]][ID2] <- 1
+      G[[E_prime_ID_mat[r,1]]][[E_prime_ID_mat[r,2]]] <- as.vector(E_prime_mat[r,3])
     }
   }
-  # G_table <- data.table(ID1 = character(), ID2 = character(), Weight = numeric())
+  
   # for(r in 1:nrow(E_prime_u)) {
-  #   ID1 <- unlist(E_prime_u[r,"ID1.t"])
-  #   ID2 <- unlist(E_prime_u[r,"ID2.t"])
+  #   ID1 <- E_prime_u[r,"ID1.t"]
+  #   ID2 <- E_prime_u[r,"ID2.t"]
   #   if(E_prime_u$time1[r] == E_prime_u$time2[r]) {
-  #     G_temp <- data.table(ID1 = c(ID1,ID2), ID2 = c(ID2,ID1), Weight = unlist(E_prime_u[r,"Weight"]))
+  #     #G[[ID1]][ID2] <- list(E_prime_u[r,"Weight"])
+  #     G[[unlist(ID1)]][unlist(ID2)] <- E_prime_u[r,"Weight"]
+  #     G[[unlist(ID2)]][unlist(ID1)] <- E_prime_u[r,"Weight"]
   #   } else {
-  #     G_temp <- data.table(ID1 = ID1, ID2 = ID2, Weight = unlist(E_prime_u[r,"Weight"]))
+  #     G[[unlist(ID1)]][unlist(ID2)] <- E_prime_u[r,"Weight"]
+  #     #Does this work? Update: Why is this here...??
+  #     #G[[ID2]][ID2] <- 1
   #   }
-  #   G_table <- bind_rows(G_table,G_temp)
   # }
   
   result <- dijkstra(G=G, s=node_prime)
@@ -1321,6 +1219,7 @@ function4 <- function(node, window, nodes, graph, timestamp, alpha) {
   sigma <- result[!(is.na(D)),sigma]
   names(sigma) <- S
   D <- result[!(is.na(D)),D]
+  names(D) <- S
   
   D_prime <- numeric()
   S_prime <- character(0)
@@ -1332,10 +1231,15 @@ function4 <- function(node, window, nodes, graph, timestamp, alpha) {
     nodeTemp <- sub("\\..*", "", x)
     #Had to modify the following from *..
     timeTemp <- as.numeric(sub('.*\\.', "", x))
-    if (timeTemp != -1 && (!(nodeTemp %in% names(D_prime)) || result[ID==x,D] == D_prime[nodeTemp])) {
-      D_prime[nodeTemp] <- result[ID==x,D]
+    if (timeTemp != -1 && (!(nodeTemp %in% names(D_prime)) || 
+                           #result[ID==x,D] 
+                           D[x] 
+                           == D_prime[nodeTemp])) {
+      #D_prime[nodeTemp] <- result[ID==x,D]
+      D_prime[nodeTemp] <- as.vector(D[x])
       S_prime <- c(S_prime, x)
-      sigma_prime[x] <- result[ID==x,sigma]
+      #sigma_prime[x] <- result[ID==x,sigma]
+      sigma_prime[x] <- as.vector(sigma[x])
     } else {
       sigma_prime[x] <- 0
     }
@@ -1373,32 +1277,38 @@ brandes_algo <- function(betweenness,S, P, sigma, sigma_prime,s) {
 get_temporal_edge_list <- function(edgeList, window, timestamp, alpha = NULL) {
   W = seq(from = timestamp - (window - 1), to = timestamp)
   
-  E_prime <- data.frame("ID1" = character(),
-                        "ID2" = character(),
-                        "Time1" = numeric(),
-                        "Time2" = numeric(),
-                        "Weight" = numeric())
+  # E_prime <- data.frame("ID1" = character(),
+  #                       "ID2" = character(),
+  #                       "Time1" = numeric(),
+  #                       "Time2" = numeric(),
+  #                       "Weight" = numeric())
   
   # Update E' by taking the union of pairs ((u, t), (v, t), alpha)
-  E_prime <- edgeList[which(edgeList$time1 >= min(W) & edgeList$time2 <= timestamp),]
+  #E_prime <- edgeList[which(edgeList$time1 >= min(W) & edgeList$time2 <= timestamp),]
+  E_prime <- edgeList[time1 >= min(W) & time2 <= timestamp,]
   E_prime$Weight <- alpha
   
   vertexTuples <- sort(unique(c(paste(E_prime$ID1,E_prime$time1,sep = ","),paste(E_prime$ID2,E_prime$time1,sep = ","))))
   ID = sub(",.*", "", vertexTuples)
   Time <- as.numeric(sub(".*,", "", vertexTuples))
-  vertexCopies <- data.frame("ID" = ID, "Time" = Time)
+  vertexCopies <- data.table("ID" = ID, "Time" = Time)
   vertexCopies <- vertexCopies[order(vertexCopies$ID, vertexCopies$Time),]
   
   # Further update E' by taking the union of pairs ((v, t), (v, t'), (1 - alpha)(t' - t))
-  E_self_IDs <- as.vector(unlist(sapply(unique(vertexCopies$ID), function(x) rep(x,nrow(vertexCopies[ID == x,])-1))))
-  
-  E_self_time1 <- as.vector(unlist(sapply(unique(E_self_IDs), function(x) vertexCopies[ID == x,"Time"][1:(length(vertexCopies[ID == x,"Time"])-1)])))
-  E_self_time2 <- as.vector(unlist(sapply(unique(E_self_IDs), function(x) vertexCopies[ID == x,"Time"][2:length(vertexCopies[ID == x,"Time"])])))
-  E_self <- data.frame("ID1" = E_self_IDs, "ID2" = E_self_IDs, 
+  IDList <- vertexCopies[,ID]
+  E_self_Reps <- table(IDList)
+  #E_self_IDs <- as.vector(unlist(sapply(unique(IDList), function(x) rep(x,nrow(vertexCopies[ID == x,])-1))))
+  E_self_IDs <- as.vector(unlist(sapply(unique(IDList), function(x) rep(x,E_self_Reps[x]-1))))
+  u_self_IDs <- unique(E_self_IDs)
+  #E_self_time1 <- as.vector(unlist(sapply(u_self_IDs, function(x) vertexCopies[ID == x,"Time"][1:(nrow(vertexCopies[ID == x,"Time"])-1)])))
+  E_self_time1 <- as.vector(unlist(sapply(u_self_IDs, function(x) vertexCopies[ID == x,"Time"][1:(E_self_Reps[x]-1)])))
+  #E_self_time2 <- as.vector(unlist(sapply(u_self_IDs, function(x) vertexCopies[ID == x,"Time"][2:nrow(vertexCopies[ID == x,"Time"])])))
+  E_self_time2 <- as.vector(unlist(sapply(u_self_IDs, function(x) vertexCopies[ID == x,"Time"][2:E_self_Reps[x]])))
+  E_self <- data.table("ID1" = E_self_IDs, "ID2" = E_self_IDs, 
                        "time1" = E_self_time1, "time2" = E_self_time2)
   E_self$Weight <- (1-alpha)*(E_self$time2 - E_self$time1)
   
-  E_prime <- rbind(E_prime, E_self)
+  E_prime <- bind_rows(E_prime, E_self)
   return(E_prime)
 }
 
@@ -1610,4 +1520,77 @@ get_temporal_betweenness_centrality <- function(edgeList, alpha, window, timesta
   }
   
   return(TBC)
+}
+
+
+get_sa_temporalBC <- function(hypergraphList, timeStamps, smax, windowLength, 
+                              focalTimeStamp, alpha, normalized = FALSE, method = "serial", nCores = NULL){
+  
+  W <- seq(from = focalTimeStamp - (windowLength - 1), to = focalTimeStamp)
+  focalIndices <- which(timeStamps %in% W)
+  
+  sTBCList <- vector("list", smax)
+  
+  for(k in 1:smax){
+    
+    s = k
+    
+    focalEdgeLists <- vector("list", length(focalIndices))
+    
+    for(j in 1:length(focalIndices)) {
+      
+      i <- focalIndices[j]
+      
+      if(is.null(rownames(hypergraphList[[i]]))) {
+        focalIncidMat <- as.matrix(hypergraphList[[i]])
+        currentIDs <- row.names(focalIncidMat) <- seq(from = 1, to = dim(focalIncidMat)[1])
+        colnames(focalIncidMat) <- seq(from = 1, to = dim(focalIncidMat)[2])
+      } else{
+        currentIDs <- rownames(hypergraphList[[i]])
+        focalIncidMat <- as.matrix(hypergraphList[[i]])
+        row.names(focalIncidMat) <- currentIDs
+        colnames(focalIncidMat) <- seq(from = 1, to = dim(focalIncidMat)[2])
+      }
+      dualIncidMat <- t(focalIncidMat)
+      
+      sLineGraphTemp <- get_s_line_graph(hypNet = dualIncidMat, size = s, vertexNames = currentIDs, mode = "incidence")
+      
+      #Using as_edgelist ignores weighted edges
+      edgeListTemp <- as_edgelist(graph_from_adjacency_matrix(sLineGraphTemp, mode = "undirected", weighted = TRUE))
+      
+      if(length(edgeListTemp) > 0) {
+        focalEdgeLists[[j]] <- data.table(ID1 = as.vector(edgeListTemp[,1]), ID2 = as.vector(edgeListTemp[,2]),
+                                          time1 = timeStamps[i], time2 = timeStamps[i])
+      }
+    }
+    
+    edgeLists_combined <- data.table::rbindlist(focalEdgeLists)
+    if(nrow(edgeLists_combined) > 0) {
+      sTBCList[[k]] <- get_temporal_betweenness_centrality(edgeList = edgeLists_combined, alpha = alpha, window = windowLength, timestamp = focalTimeStamp, 
+                                                           normalized = normalized, method = method, nCores = nCores)
+    }
+  }
+  
+  allIDs <- unique(as.vector(sapply(seq(from = 1, to = length(hypergraphList)), function(x) row.names(hypergraphList[[x]]))))
+  
+  matrixTemp <- matrix(0, nrow = length(allIDs), ncol = smax)
+  row.names(matrixTemp) <- allIDs
+  
+  for(i in 1:length(sTBCList)) {
+    if(!is.null(sTBCList[[i]])){
+      sTBCTemp <- sTBCList[[i]]
+      for(j in 1:length(sTBCTemp)) {
+        matrixTemp[names(sTBCTemp)[j],i] <- sTBCTemp[j]
+      }
+    }
+  }
+  
+  matrixTemp <- ifelse(is.nan(matrixTemp),0,matrixTemp)
+  
+  rankedMatrix <- matrix(0, nrow = nrow(matrixTemp), ncol = ncol(matrixTemp))
+  rankedMatrix <- sapply(seq_along(1:smax), function(x) rankedMatrix[,x] <- 
+                           rank(matrixTemp[,x]))
+  integratedScores <- rank(-rowSums(rankedMatrix)/smax, ties.method = "average")
+  return(list(matrixTemp, integratedScores))
+  
 }
