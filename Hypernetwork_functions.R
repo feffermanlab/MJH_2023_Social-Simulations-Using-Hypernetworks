@@ -1050,7 +1050,8 @@ update_friendship_matrix <- function(prefMatrices, popData, timeStep, currentPar
 
 push <- function(Q, element) {
   Q <- append(Q, list(element))
-  Q <- Q[order(as.numeric(map(Q, 1)))]
+  Q <- Q[order(as.numeric(sapply(Q, "[[", 1)))]
+  #Q <- Q[order(as.numeric(map(Q, 1)))]
   return(Q)
 }
 
@@ -1125,7 +1126,8 @@ dijkstra <- function(G, s) {
     djkMatrix[v,3] <- 1
     
     #Extract each node v is connected to, along with the distances from node v, and add to these the current shortest distance to v (?)  
-    vw_dist_vect <- map2_dbl(pluck(G,v), dist, sum)
+    vw_dist_vect <- mapply(sum, pluck(G,v), dist)
+      #map2_dbl(pluck(G,v), dist, sum)
     
     #For each node connected to v
     for(w in 1:length(vw_dist_vect)){
