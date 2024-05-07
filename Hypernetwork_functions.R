@@ -55,26 +55,33 @@ get_dual_hypergraph <- function(hypNet, popData) {
 
 get_s_line_graph <- function(hypNet, size, vertexNames, mode){
   if(mode == "incidence") {
-    matrixTemp <- matrix(0, nrow = ncol(hypNet), ncol = ncol(hypNet))
-    rownames(matrixTemp) <- vertexNames
-    colnames(matrixTemp) <- vertexNames
-    hyperEdgeSizes <- sapply(seq(from = 1, to = ncol(hypNet)), function(x) sum(hypNet[,x] > 0))
-    hyperEdgeIndices <- which(hyperEdgeSizes >= size)
-    #What is the purpose of the following line? Is it supposed to be sizes?
-    #hyperEdgeIndices <- hyperEdgeIndices[which(hyperEdgeIndices != ncol(hypNet))]
-    if(length(hyperEdgeIndices) > 1) {
-    for(i in hyperEdgeIndices) {
-      refVect <- as.vector(which(hypNet[,i]>0))
-      focalCol <- hypNet[,i]
-      indices <- hyperEdgeIndices[which(hyperEdgeIndices != i)]
-      matrixTemp[i,c(indices)] <- sapply(indices, 
-                         function(x)
-                           ifelse(
-                           length(focalCol[c(intersect(refVect, 
-                                                      as.vector(which(hypNet[,x]>0))))]) >= size, 1, 0))
-    }
-    matrixTemp[lower.tri(matrixTemp)] <- t(matrixTemp)[lower.tri(matrixTemp)]
-    }
+    
+    binaryIncidMat <- ifelse(hypNet > 0,1,0)
+    intProf <- t(binaryIncidMat) %*% binaryIncidMat
+    diag(intProf) <- 0
+    matrixTemp <- ifelse(intProf >= size, 1, 0)
+    
+    # matrixTemp <- matrix(0, nrow = ncol(hypNet), ncol = ncol(hypNet))
+    # colnames(matrixTemp) <- rownames(matrixTemp) <- vertexNames
+    # #colnames(matrixTemp) <- vertexNames
+    # hyperEdgeSizes <- sapply(seq(from = 1, to = ncol(hypNet)), function(x) sum(hypNet[,x] > 0))
+    # hyperEdgeIndices <- which(hyperEdgeSizes >= size)
+    # #What is the purpose of the following line? Is it supposed to be sizes?
+    # #hyperEdgeIndices <- hyperEdgeIndices[which(hyperEdgeIndices != ncol(hypNet))]
+    # if(length(hyperEdgeIndices) > 1) {
+    # for(i in hyperEdgeIndices) {
+    #   focalCol <- hypNet[,i]
+    #   refVect <- as.vector(which(focalCol>0))
+    #   #refVect <- as.vector(which(hypNet[,i]>0))
+    #   indices <- hyperEdgeIndices[which(hyperEdgeIndices != i)]
+    #   matrixTemp[i,c(indices)] <- sapply(indices, 
+    #                      function(x)
+    #                        ifelse(
+    #                        length(focalCol[c(intersect(refVect, 
+    #                                                   as.vector(which(hypNet[,x]>0))))]) >= size, 1, 0))
+    # }
+    # matrixTemp[lower.tri(matrixTemp)] <- t(matrixTemp)[lower.tri(matrixTemp)]
+    # }
   }
   else{
     if(mode == "edgeList") {
@@ -1323,245 +1330,9 @@ get_temporal_betweenness_centrality <- function(edgeList, alpha, window, timesta
   
   if(method == "parallel") {
     cl <- makeCluster(nCores)
-    registerDoParallel(cores = nCores)
-    #clusterEvalQ(cl)
-    #clusterExport(cl, envir = .GlobalEnv, varlist = c('dijkstra', 'function4', 'brandes_algo'))
+    registerDoParallel(cl = cl, cores = nCores)
+    clusterExport(cl = cl, envir = .GlobalEnv, varlist = c("push", "pop", "dijkstra", "function4", "brandes_algo"))
     TBCList <- foreach(i = vertices, .packages = c("data.table","purrr")) %dopar% {
-      
-      push <- function(Q, element) {
-        Q <- append(Q, list(element))
-        Q <- Q[order(as.numeric(map(Q, 1)))]
-        return(Q)
-      }
-      
-      pop <- function(Q) {
-        element <- Q[[1]]
-        Q <- Q[-1]
-        return(list(Q,c(element)))
-      }
-      
-      dijkstra <- function(G, s) {
-        
-        IDList <- sort(names(G))
-        lengthIDList <- length(IDList)
-        P <- vector("list", lengthIDList)
-        names(P) <- IDList
-        djkMatrix <- matrix(c(rep(NA,lengthIDList),rep(0,2*lengthIDList)), nrow = lengthIDList, ncol = 3)
-        rownames(djkMatrix) <- IDList
-        colnames(djkMatrix) <- c("D", "sgm", "V")
-        
-        #Initialize by setting the number of shortest paths for the source node s equal to 1
-        djkMatrix[s,2] <- 1
-        
-        #Q will be our priority queue
-        Q <- list()
-        
-        #seen will indicate the distance of the currently known shortest path from s to each other node
-        seen <- list()
-        seen[[s]] <- 0
-        
-        #To be honest, upon reviewing the algorithm... I'm not certain what next_c is doing and whether it is needed
-        #may be a holdover from the conversion from python
-        c <- 1
-        
-        next_c <- function() {
-          c <<- c + 1
-          return(c - 1)
-        }
-        
-        
-        #Populate the priority queue with the source node s
-        #Each entry includes the distance to the source node, the focal predecessor of the node and the vertext name
-        Q <- push(Q, c(as.numeric(0), as.numeric(next_c()), s, s))
-        
-        #Repeat so long as the priority queue is not empty
-        while (length(Q) > 0) {
-          
-          #Pop off the top element of the priority queue (sorted by shortest distance)
-          poppedQ <- pop(Q)
-          
-          #Update priority queue without popped element
-          Q <- poppedQ[[1]]
-          
-          #From the popped element, extract distance (of its focal predecessor?), the focal predecessor, and vertex name
-          element <- poppedQ[[2]]
-          dist <- as.numeric(element[1])
-          pred <- element[3]
-          v <- element[4]
-          
-          #If the node under consideration has already been visited by the algorithm, skip it
-          if(djkMatrix[v,3] == 1) {
-            next
-          }
-          
-          #update for vertex v its current sigma value, equal to the number of shortest paths associated with v so far
-          #plus all shortest paths associated with the focal predecessor of v
-          djkMatrix[v,2] <- djkMatrix[v,2] + djkMatrix[pred,2]
-          
-          #Update current distance of vertex v from source node s
-          djkMatrix[v,1] <- dist
-          
-          #Indicate that vertex v has been visited
-          djkMatrix[v,3] <- 1
-          
-          #Extract each node v is connected to, along with the distances from node v, and add to these the current shortest distance to v (?)  
-          vw_dist_vect <- map2_dbl(pluck(G,v), dist, sum)
-          
-          #For each node connected to v
-          for(w in 1:length(vw_dist_vect)){
-            
-            wName <- names(vw_dist_vect)[w]
-            wDist <- as.vector(vw_dist_vect[w])
-            
-            #If a node has not yet been visited by the algorithm and either its name is not in 'seen' or the distance to w from source node s via v is less than the currently known shortest path to w
-            if (djkMatrix[wName,3] == 0 && (!(wName %in% names(seen)) || wDist < seen[[w]])) {
-              
-              #Update the shortest path distance associated with w in seen
-              seen[[wName]] <- wDist
-              
-              #Push into the priority queue an entry containing the shortest distance from s to w, , its focal predecessor (i.e., v), and the name of w
-              Q <- push(Q, c(as.numeric(round(wDist, 15)), as.numeric(next_c()), v, wName))
-              
-              #Add v to the list of predecessors of w
-              P[[wName]] <- c(v)
-              
-              #If the distance captured by vw_dist_vect equals the current known shortest path to w:
-            } else if (wDist == seen[[wName]]) {
-              
-              #Add to the number of shortest paths associated with w all the shortest paths to its predecessor v
-              djkMatrix[wName,2] <- djkMatrix[wName,2] + djkMatrix[v,2]
-              
-              #Add node v to the list of predecessors of w
-              P[[wName]] <- c(unlist(P[wName]),v)
-            }
-          }
-        }
-        
-        # The initialization of the algorithm makes sigma values double.
-        # So we can return the exact values by dividing by 2.
-        djkMatrix[,2] <- djkMatrix[,2]/2
-        
-        djkTable <- data.table(ID = IDList, P = P, D = djkMatrix[,1], sigma = djkMatrix[,2], Visited = djkMatrix[,3])
-        return(djkTable[order(D)])
-      }
-      
-      function4 <- function(node, window, nodes, graph, timestamp, alpha) {
-        betweenness <- numeric(length(nodes))
-        names(betweenness) <- sort(nodes)
-        
-        dummyNode <- paste(node, -1, sep = ".")
-        nodes <- c(nodes, dummyNode)
-        #dummyEdges <- data.table(ID1 = character(), ID2 = character(), time1 = integer(), time2 = integer(), Weight = numeric())
-        
-        W <- (timestamp - window + 1):timestamp
-        tempNodes <- paste(node,W,sep = ".")
-        nodeIndices <- which(tempNodes %in% nodes)
-        tempNodes <- tempNodes[nodeIndices]
-        dummyEdges <- data.table(ID1 = node, ID2 = node, time1 = -1, time2 = sort(W[nodeIndices], decreasing = FALSE), Weight = 0)
-        # for(t in (timestamp - window + 1):timestamp){
-        #   if(paste(node,t,sep = ".") %in% nodes) {
-        #     dummyEdge <- data.table(ID1 = node, ID2 = node, time1 = -1, time2 = t, Weight = 0)
-        #     dummyEdges <- rbindlist(list(dummyEdge, dummyEdges))
-        #   }
-        # }
-        E_prime_u <- rbindlist(list(graph, dummyEdges))
-        
-        node_prime <- dummyNode
-        
-        E_prime_u$ID1.t <- paste(E_prime_u$ID1, E_prime_u$time1, sep = ".")
-        E_prime_u$ID2.t <- paste(E_prime_u$ID2, E_prime_u$time2, sep = ".")
-        E_prime_mat <- as.matrix(E_prime_u[,3:5])
-        E_prime_ID_mat <- as.matrix(E_prime_u[,6:7])
-        timeMatch <- ifelse(E_prime_mat[,1] == E_prime_mat[,2],1,0)
-        G<-list()
-        
-        for(r in 1:length(timeMatch)) {
-          if(timeMatch[r] == 1) {
-            G[[E_prime_ID_mat[r,1]]][[E_prime_ID_mat[r,2]]] <- as.vector(E_prime_mat[r,3])
-            G[[E_prime_ID_mat[r,2]]][[E_prime_ID_mat[r,1]]] <- as.vector(E_prime_mat[r,3])
-          } else {
-            G[[E_prime_ID_mat[r,1]]][[E_prime_ID_mat[r,2]]] <- as.vector(E_prime_mat[r,3])
-          }
-        }
-        
-        # for(r in 1:nrow(E_prime_u)) {
-        #   ID1 <- E_prime_u[r,"ID1.t"]
-        #   ID2 <- E_prime_u[r,"ID2.t"]
-        #   if(E_prime_u$time1[r] == E_prime_u$time2[r]) {
-        #     #G[[ID1]][ID2] <- list(E_prime_u[r,"Weight"])
-        #     G[[unlist(ID1)]][unlist(ID2)] <- E_prime_u[r,"Weight"]
-        #     G[[unlist(ID2)]][unlist(ID1)] <- E_prime_u[r,"Weight"]
-        #   } else {
-        #     G[[unlist(ID1)]][unlist(ID2)] <- E_prime_u[r,"Weight"]
-        #     #Does this work? Update: Why is this here...??
-        #     #G[[ID2]][ID2] <- 1
-        #   }
-        # }
-        
-        result <- dijkstra(G=G, s=node_prime)
-        S <- result[!(is.na(D)),ID]
-        P <- result[!(is.na(D)),P]
-        names(P) <- S
-        #Sigma indicates number of shortest paths
-        sigma <- result[!(is.na(D)),sigma]
-        names(sigma) <- S
-        D <- result[!(is.na(D)),D]
-        names(D) <- S
-        
-        D_prime <- numeric()
-        S_prime <- character(0)
-        #Sigma_prime indicates number of shortest-fastest paths
-        sigma_prime <- numeric(length(S))
-        names(sigma_prime) <- S
-        
-        for (x in S) {
-          nodeTemp <- sub("\\..*", "", x)
-          #Had to modify the following from *..
-          timeTemp <- as.numeric(sub('.*\\.', "", x))
-          if (timeTemp != -1 && (!(nodeTemp %in% names(D_prime)) || 
-                                 #result[ID==x,D] 
-                                 D[x] 
-                                 == D_prime[nodeTemp])) {
-            #D_prime[nodeTemp] <- result[ID==x,D]
-            D_prime[nodeTemp] <- as.vector(D[x])
-            S_prime <- c(S_prime, x)
-            #sigma_prime[x] <- result[ID==x,sigma]
-            sigma_prime[x] <- as.vector(sigma[x])
-          } else {
-            sigma_prime[x] <- 0
-          }
-        }
-        
-        betweenness <- brandes_algo(betweenness = betweenness, S = S, P = P, sigma = sigma, sigma_prime = sigma_prime, s = node)
-        return(betweenness)
-      }
-      
-      brandes_algo <- function(betweenness,S, P, sigma, sigma_prime,s) {
-        delta <- numeric(length(sigma))
-        names(delta) <- names(sigma)
-        
-        while(length(S) > 0){
-          x <- S[length(S)]
-          S <- S[-length(S)]
-          coeff <- ((sigma_prime[x]/sigma[x])+delta[x])/sigma[x]
-          nodeTemp <- sub("\\..*", "", x)
-          timeTemp <- as.numeric(sub('.*\\.', "", x))
-          for(v in P[[x]]) {
-            pNodeTemp <- sub("\\..*", "", v)
-            pTimeTemp <- as.numeric(sub('.*\\.', "", v))
-            if(pTimeTemp != -1) {
-              delta[v] <- delta[v] + (sigma[v] * coeff)
-            }
-          }
-          if(nodeTemp != s) {
-            betweenness[x] <- betweenness[x] + delta[x]
-          }
-        }
-        return(betweenness)
-      }
-      
-
-      
       list(function4(node = i, window = window, nodes = nodes, graph = E_prime, timestamp = timestamp, alpha = alpha))
     }
     stopCluster(cl)
