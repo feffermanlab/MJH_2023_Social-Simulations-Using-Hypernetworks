@@ -1,5 +1,5 @@
-source("Hypernetwork_functions.R")
-source("dataImportAndAggregation.R")
+source("~/git/MJH_2023_Social-Simulations-Using-Hypernetworks/Hypernetwork_functions.R", chdir = TRUE)
+source("~/git/MJH_2023_Social-Simulations-Using-Hypernetworks/dataImportAndAggregation.R", chdir = TRUE)
 library(gdata)
 library(data.table)
 library(doParallel)
