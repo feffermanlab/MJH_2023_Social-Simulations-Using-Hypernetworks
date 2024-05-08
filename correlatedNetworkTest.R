@@ -55,8 +55,8 @@ sim_details_high="saTBCData_highCorr_May24"
 if(!file.exists(sim_details_low)) dir.create(sim_details_low)
 if(!file.exists(sim_details_high)) dir.create(sim_details_high)
 
-highCorList <- importCSVs(path = "~/scratch/SA_HyperNets/Run9/hyperGraph_Sequences_highCorr_May24/")
-lowCorList <- importCSVs(path = "~/scratch/SA_HyperNets/Run9/hyperGraph_Sequences_lowCorr_May24/")
+highCorList <- importCSVs(path = "~/scratch/Temporal_HyperNets/Run1/hyperGraph_Sequences_highCorr_May24/")
+lowCorList <- importCSVs(path = "~/scratch/Temporal_HyperNets/Run1/hyperGraph_Sequences_lowCorr_May24/")
 
 highCorIncidMats <- vector("list", 100)
 
@@ -95,22 +95,22 @@ foreach(s = 1:length(lowCorIncidMats)) %dopar% {
     saTBC <-get_sa_temporalBC(hypergraphList = shortWindowStack, timeStamps = shortWindowVect, smax = 4, windowLength = 20, focalTimeStamp = 20, alpha = a, 
                       normalized = TRUE, method = "serial", nCores = NULL)
     dataTemp <- data.table("simID" = s, 
-                           "correlation" = 0.1, 
+                           "rewireP" = 0.5, 
                            "window" = 3,
                            "alpha" = a, 
                            "ID" = names(saTBC[[2]]), 
                            "saTBC" = saTBC[[2]])
-    write.csv(dataTemp, file = file.path(sim_details_low, sprintf("simData_%s_%.01i_%.02f_%.01i_%.02f.csv", run_ID, s, 0.1, 3, a)))
+    write.csv(dataTemp, file = file.path(sim_details_low, sprintf("simData_%s_%.01i_%.02f_%.01i_%.02f.csv", run_ID, s, 0.5, 3, a)))
     
     saTBC2 <-get_sa_temporalBC(hypergraphList = longWindowStack, timeStamps = longWindowVect, smax = 4, windowLength = 20, focalTimeStamp = 20, alpha = a, 
                               normalized = TRUE, method = "serial", nCores = NULL)
     dataTemp <- data.table("simID" = s, 
-                           "correlation" = 0.1, 
+                           "rewireP" = 0.5, 
                            "window" = 10,
                            "alpha" = a, 
                            "ID" = names(saTBC2[[2]]), 
                            "saTBC" = saTBC2[[2]])
-    write.csv(dataTemp, file = file.path(sim_details_low, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.1, 10, a)))
+    write.csv(dataTemp, file = file.path(sim_details_low, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.5, 10, a)))
   }
   
   shortWindowStack <- vector("list", length(shortWindowVect))
@@ -125,22 +125,22 @@ foreach(s = 1:length(lowCorIncidMats)) %dopar% {
     saTBC <-get_sa_temporalBC(hypergraphList = shortWindowStack, timeStamps = shortWindowVect, smax = 4, windowLength = 20, focalTimeStamp = 20, alpha = a, 
                               normalized = TRUE, method = "serial", nCores = NULL)
     dataTemp <- data.table("simID" = s, 
-                           "correlation" = 0.5, 
+                           "rewireP" = 0.1, 
                            "window" = 3,
                            "alpha" = a, 
                            "ID" = names(saTBC[[2]]), 
                            "saTBC" = saTBC[[2]])
-    write.csv(dataTemp, file = file.path(sim_details_high, sprintf("simData_%s_%.01i_%.02f_%.01i_%.02f.csv", run_ID, s, 0.5, 3, a)))
+    write.csv(dataTemp, file = file.path(sim_details_high, sprintf("simData_%s_%.01i_%.02f_%.01i_%.02f.csv", run_ID, s, 0.1, 3, a)))
     
     saTBC2 <-get_sa_temporalBC(hypergraphList = longWindowStack, timeStamps = longWindowVect, smax = 4, windowLength = 20, focalTimeStamp = 20, alpha = a, 
                                normalized = TRUE, method = "serial", nCores = NULL)
     dataTemp <- data.table("simID" = s, 
-                           "correlation" = 0.5, 
+                           "rewireP" = 0.1, 
                            "window" = 10,
                            "alpha" = a, 
                            "ID" = names(saTBC2[[2]]), 
                            "saTBC" = saTBC2[[2]])
-    write.csv(dataTemp, file = file.path(sim_details_high, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.5, 10, a)))
+    write.csv(dataTemp, file = file.path(sim_details_high, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.1, 10, a)))
   }
   
 }
