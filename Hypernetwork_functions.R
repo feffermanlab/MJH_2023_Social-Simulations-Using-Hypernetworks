@@ -2,7 +2,17 @@
 #Create a hypernetwork similar to an Erdos-Renyi graph
 #Each vertex, v, has a probability, p, of being in each of m hyperedges
 #See Aksoy et al., 2020, EPJ Data Science, 9: 16 for more details
-generate_ER_hypergraph <- function(v, m, p) {
+generate_ER_hypergraph <- function(v, m, p, method = "incidence") {
+  if(method == "incidence") {
+    incMat <- matrix(runif(v*m, min = 0, max = 1), nrow = v, ncol = m)
+    incMat <- ifelse(incMat <= p, 1, 0)
+    emptyEdges <- which(colSums(incMat) == 0)
+    if(length(emptyEdges) > 0) {
+      incMat <- incMat[,-emptyEdges]
+    }
+    return(incMat)
+  } else{
+    if(method == "edgeList") {
   hyperEdgeList <- vector("list", m)
   for(i in 1:v) {
     for(j in 1:m) {
@@ -26,6 +36,8 @@ generate_ER_hypergraph <- function(v, m, p) {
   hyperEdgeList <- hyperEdgeList[order(sapply(hyperEdgeList, length))]
   
   return(hyperEdgeList)
+    }
+  }
 }
 
 create_population_data <- function(N, initialAges, maxIndivs = 10000, ageBias, selectGradient) {
@@ -1050,6 +1062,7 @@ update_friendship_matrix <- function(prefMatrices, popData, timeStep, currentPar
 
 push <- function(Q, element) {
   Q <- append(Q, list(element))
+  #Q <- Q[sort.list(as.numeric(sapply(Q, "[[", 1)))]
   Q <- Q[order(as.numeric(sapply(Q, "[[", 1)))]
   #Q <- Q[order(as.numeric(map(Q, 1)))]
   return(Q)
