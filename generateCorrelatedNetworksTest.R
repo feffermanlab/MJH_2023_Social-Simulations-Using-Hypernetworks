@@ -25,8 +25,8 @@ generate_correlated_hypergraph <- function(hypergraph, rewireP) {
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
 sim_details_low="hyperGraph_Sequences_lowCorr_May24"
 sim_details_high="hyperGraph_Sequences_highCorr_May24"
-if(!file.exists(sim_details)) dir.create(sim_details_low)
-if(!file.exists(sim_details)) dir.create(sim_details_high)
+if(!file.exists(sim_details_low)) dir.create(sim_details_low)
+if(!file.exists(sim_details_high)) dir.create(sim_details_high)
 
 set.seed(05082024)
 
