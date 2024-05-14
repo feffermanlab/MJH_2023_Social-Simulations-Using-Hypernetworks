@@ -51,22 +51,22 @@ registerDoParallel(cores = 20)
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
 sim_details_low="saTBCData_lowCorr_May24"
-sim_details_high="saTBCData_highCorr_May24"
+#sim_details_high="saTBCData_highCorr_May24"
 if(!file.exists(sim_details_low)) dir.create(sim_details_low)
-if(!file.exists(sim_details_high)) dir.create(sim_details_high)
+#if(!file.exists(sim_details_high)) dir.create(sim_details_high)
 
-highCorList <- importCSVs(path = "~/scratch/Temporal_HyperNets/Run1/hyperGraph_Sequences_highCorr_May24/")
+#highCorList <- importCSVs(path = "~/scratch/Temporal_HyperNets/Run1/hyperGraph_Sequences_highCorr_May24/")
 lowCorList <- importCSVs(path = "~/scratch/Temporal_HyperNets/Run1/hyperGraph_Sequences_lowCorr_May24/")
 
-highCorIncidMats <- vector("list", 100)
+#highCorIncidMats <- vector("list", 100)
 
-for(s in 1:length(highCorList)) {
-i <- ceiling(s/20)
-t <- ifelse((s %% 20) == 0, 20, s %% 20)
-
-highCorIncidMats[[i]][[t]] <- highCorList[[s]]
-
-}
+# for(s in 1:length(highCorList)) {
+# i <- ceiling(s/20)
+# t <- ifelse((s %% 20) == 0, 20, s %% 20)
+# 
+# highCorIncidMats[[i]][[t]] <- highCorList[[s]]
+# 
+# }
 
 lowCorIncidMats <- vector("list", 100)
 
@@ -113,35 +113,35 @@ foreach(s = 1:length(lowCorIncidMats)) %dopar% {
     write.csv(dataTemp, file = file.path(sim_details_low, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.5, 10, a)))
   }
   
-  shortWindowStack <- vector("list", length(shortWindowVect))
-  longWindowStack <- vector("list", length(longWindowVect))
-  
-  for(t in 1:length(shortWindowVect)) {
-    shortWindowStack[[t]] <- highCorIncidMats[[s]][[shortWindowVect[t]]]
-    longWindowStack[[t]] <- highCorIncidMats[[s]][[longWindowVect[t]]]
-  }
-  #nCores <- detectCores() - 1
-  for(a in alphaValues) {
-    saTBC <-get_sa_temporalBC(hypergraphList = shortWindowStack, timeStamps = shortWindowVect, smax = 4, windowLength = 20, focalTimeStamp = 20, alpha = a, 
-                              normalized = TRUE, method = "serial", nCores = NULL)
-    dataTemp <- data.table("simID" = s, 
-                           "rewireP" = 0.1, 
-                           "window" = 3,
-                           "alpha" = a, 
-                           "ID" = names(saTBC[[2]]), 
-                           "saTBC" = saTBC[[2]])
-    write.csv(dataTemp, file = file.path(sim_details_high, sprintf("simData_%s_%.01i_%.02f_%.01i_%.02f.csv", run_ID, s, 0.1, 3, a)))
-    
-    saTBC2 <-get_sa_temporalBC(hypergraphList = longWindowStack, timeStamps = longWindowVect, smax = 4, windowLength = 20, focalTimeStamp = 20, alpha = a, 
-                               normalized = TRUE, method = "serial", nCores = NULL)
-    dataTemp <- data.table("simID" = s, 
-                           "rewireP" = 0.1, 
-                           "window" = 10,
-                           "alpha" = a, 
-                           "ID" = names(saTBC2[[2]]), 
-                           "saTBC" = saTBC2[[2]])
-    write.csv(dataTemp, file = file.path(sim_details_high, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.1, 10, a)))
-  }
+  # shortWindowStack <- vector("list", length(shortWindowVect))
+  # longWindowStack <- vector("list", length(longWindowVect))
+  # 
+  # for(t in 1:length(shortWindowVect)) {
+  #   shortWindowStack[[t]] <- highCorIncidMats[[s]][[shortWindowVect[t]]]
+  #   longWindowStack[[t]] <- highCorIncidMats[[s]][[longWindowVect[t]]]
+  # }
+  # #nCores <- detectCores() - 1
+  # for(a in alphaValues) {
+  #   saTBC <-get_sa_temporalBC(hypergraphList = shortWindowStack, timeStamps = shortWindowVect, smax = 4, windowLength = 20, focalTimeStamp = 20, alpha = a, 
+  #                             normalized = TRUE, method = "serial", nCores = NULL)
+  #   dataTemp <- data.table("simID" = s, 
+  #                          "rewireP" = 0.1, 
+  #                          "window" = 3,
+  #                          "alpha" = a, 
+  #                          "ID" = names(saTBC[[2]]), 
+  #                          "saTBC" = saTBC[[2]])
+  #   write.csv(dataTemp, file = file.path(sim_details_high, sprintf("simData_%s_%.01i_%.02f_%.01i_%.02f.csv", run_ID, s, 0.1, 3, a)))
+  #   
+  #   saTBC2 <-get_sa_temporalBC(hypergraphList = longWindowStack, timeStamps = longWindowVect, smax = 4, windowLength = 20, focalTimeStamp = 20, alpha = a, 
+  #                              normalized = TRUE, method = "serial", nCores = NULL)
+  #   dataTemp <- data.table("simID" = s, 
+  #                          "rewireP" = 0.1, 
+  #                          "window" = 10,
+  #                          "alpha" = a, 
+  #                          "ID" = names(saTBC2[[2]]), 
+  #                          "saTBC" = saTBC2[[2]])
+  #   write.csv(dataTemp, file = file.path(sim_details_high, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.1, 10, a)))
+  # }
   
 }
 
