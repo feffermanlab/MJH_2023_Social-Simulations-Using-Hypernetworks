@@ -931,14 +931,20 @@ do_social_contagion_initial <- function(incidMat, demonID, popData,
 
 get_subedge_density <- function(hypergraph, focalEdge) {
   hyperEdgeMembership <- as.integer(names(which(hypergraph[,focalEdge] > 0)))
+  # lengthTemp <- length(hyperEdgeMembership)
+  # numPossible <- sum(sapply(2:lengthTemp, function(x) factorial(lengthTemp)/(factorial(lengthTemp - x) * factorial(x))))-1
   if(length(hyperEdgeMembership) > 3) {
-    possibleSubsets <- unlist(sapply(seq(from = 2, to = (length(hyperEdgeMembership) - 1)), function (x)
-      combn(hyperEdgeMembership, m = x, simplify = FALSE)), recursive = FALSE)
+  possibleSubsets <- unlist(sapply(seq(from = 2, to = (length(hyperEdgeMembership) - 1)), function (x)
+    combn(hyperEdgeMembership, m = x, simplify = FALSE)), recursive = FALSE)
   } else{
     possibleSubsets <- combn(hyperEdgeMembership, m = length(hyperEdgeMembership) - 1, simplify = FALSE)
   }
   hyperEdgeSizes <- sapply(seq(from = 1, to = ncol(hypergraph)), function(x) sum(hypergraph[,x] > 0))
-  indicesTemp <- which(hyperEdgeSizes < length(hyperEdgeMembership) & hyperEdgeSizes > 1)
+  indicesTemp <- which(hyperEdgeSizes < lengthTemp & hyperEdgeSizes > 1)
+  if(length(indicesTemp) > 0){
+    # incidTemp <- as.matrix(hypergraph[,indicesTemp])
+    # incidTemp <- unique(incidTemp, MARGIN = 2)
+    # sed <- (ncol(incidTemp)+1)/(numPossible + 1)
   subSetsPresent <- rep(0, length(indicesTemp))
   for(j in 1:length(indicesTemp)) {
     tempMemb <- as.integer(names(which(hypergraph[,indicesTemp[j]] > 0)))
@@ -947,6 +953,9 @@ get_subedge_density <- function(hypergraph, focalEdge) {
   }
   sed <- (sum(subSetsPresent)+1)/(length(possibleSubsets) + 1)
   return(sed)
+  } else {
+    return(0)
+  }
 }
 
 get_global_subedge_density <- function(hypergraph) {
