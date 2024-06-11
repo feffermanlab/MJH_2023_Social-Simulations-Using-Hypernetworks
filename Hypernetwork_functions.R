@@ -929,29 +929,40 @@ do_social_contagion_initial <- function(incidMat, demonID, popData,
 #   return(list(learners, selectedEdge))
 # }
 
-get_subedge_density <- function(hypergraph, focalEdge) {
+get_subedge_density <- function(hypergraph, focalEdge, inclusive = FALSE, maxSize = NULL) {
   hyperEdgeMembership <- as.integer(names(which(hypergraph[,focalEdge] > 0)))
-  # lengthTemp <- length(hyperEdgeMembership)
-  # numPossible <- sum(sapply(2:lengthTemp, function(x) factorial(lengthTemp)/(factorial(lengthTemp - x) * factorial(x))))-1
-  if(length(hyperEdgeMembership) > 3) {
-  possibleSubsets <- unlist(sapply(seq(from = 2, to = (length(hyperEdgeMembership) - 1)), function (x)
-    combn(hyperEdgeMembership, m = x, simplify = FALSE)), recursive = FALSE)
-  } else{
-    possibleSubsets <- combn(hyperEdgeMembership, m = length(hyperEdgeMembership) - 1, simplify = FALSE)
+  lengthTemp <- length(hyperEdgeMembership)
+  if(is.null(maxSize) || lengthTemp < maxSize) {
+  numPossible <- sum(sapply(2:lengthTemp, function(x) factorial(lengthTemp)/(factorial(lengthTemp - x) * factorial(x))))-1
+  } else {
+    numPossible <- sum(sapply(2:maxSize, function(x) factorial(lengthTemp)/(factorial(lengthTemp - x) * factorial(x))))-1  
   }
+  # if(length(hyperEdgeMembership) > 3) {
+  # possibleSubsets <- unlist(sapply(seq(from = 2, to = (length(hyperEdgeMembership) - 1)), function (x)
+  #   combn(hyperEdgeMembership, m = x, simplify = FALSE)), recursive = FALSE)
+  # } else{
+  #   possibleSubsets <- combn(hyperEdgeMembership, m = length(hyperEdgeMembership) - 1, simplify = FALSE)
+  # }
   hyperEdgeSizes <- sapply(seq(from = 1, to = ncol(hypergraph)), function(x) sum(hypergraph[,x] > 0))
   indicesTemp <- which(hyperEdgeSizes < lengthTemp & hyperEdgeSizes > 1)
   if(length(indicesTemp) > 0){
-    # incidTemp <- as.matrix(hypergraph[,indicesTemp])
-    # incidTemp <- unique(incidTemp, MARGIN = 2)
-    # sed <- (ncol(incidTemp)+1)/(numPossible + 1)
-  subSetsPresent <- rep(0, length(indicesTemp))
-  for(j in 1:length(indicesTemp)) {
-    tempMemb <- as.integer(names(which(hypergraph[,indicesTemp[j]] > 0)))
-    tempSubs <- Filter(function(x) length(x) == length(tempMemb), possibleSubsets)
-    subSetsPresent[j] <- sum(sapply(seq(from = 1, to = length(tempSubs)), function(x) all(sort(tempMemb) %in% sort(tempSubs[[x]]))))
-  }
-  sed <- (sum(subSetsPresent)+1)/(length(possibleSubsets) + 1)
+     incidTemp <- as.matrix(hypergraph[,indicesTemp])
+     incidTemp <- unique(incidTemp, MARGIN = 2)
+    
+  #subSetsPresent <- rep(0, length(indicesTemp))
+    #tempMemb <- as.integer(names(which(hypergraph[,j] > 0)))
+    subSetsPresent <- sum(sapply(1:ncol(incidTemp), function(x) all(as.integer(names(which(incidTemp[,x]>0))) %in% hyperEdgeMembership)))
+    if(inclusive == TRUE) {
+    sed <- (subSetsPresent+1)/(numPossible + 1)
+    } else{
+      sed <- subSetsPresent/numPossible
+    }
+  # for(j in 1:length(indicesTemp)) {
+  #   tempMemb <- as.integer(names(which(hypergraph[,indicesTemp[j]] > 0)))
+  #   tempSubs <- Filter(function(x) length(x) == length(tempMemb), possibleSubsets)
+  #   subSetsPresent[j] <- sum(sapply(seq(from = 1, to = length(tempSubs)), function(x) all(sort(tempMemb) %in% sort(tempSubs[[x]]))))
+  # }
+  # sed <- (sum(subSetsPresent)+1)/(length(possibleSubsets) + 1)
   return(sed)
   } else {
     return(0)
@@ -1259,9 +1270,16 @@ function4 <- function(node, window, nodes, graph, timestamp, alpha) {
   names(sigma_prime) <- S
   
   for (x in S) {
-    nodeTemp <- sub("\\..*", "", x)
+    splitx <- unlist(str_split(x, fixed(".")))
+    splitLength <- length(splitx)
+    
+    #Had to modify to deal with nodenames that themselves are separated by .
+    nodeTemp <- paste(splitx[1:(splitLength-1)], collapse = ".")
+    #nodeTemp <- sub("\\..*", "", x)
+    
     #Had to modify the following from *..
-    timeTemp <- as.numeric(sub('.*\\.', "", x))
+    #timeTemp <- as.numeric(sub('.*\\.', "", x))
+    timeTemp <- as.numeric(splitx[splitLength])
     if (timeTemp != -1 && (!(nodeTemp %in% names(D_prime)) || 
                            #result[ID==x,D] 
                            D[x] 
@@ -1288,11 +1306,19 @@ brandes_algo <- function(betweenness,S, P, sigma, sigma_prime,s) {
     x <- S[length(S)]
     S <- S[-length(S)]
     coeff <- ((sigma_prime[x]/sigma[x])+delta[x])/sigma[x]
-    nodeTemp <- sub("\\..*", "", x)
-    timeTemp <- as.numeric(sub('.*\\.', "", x))
+    splitx <- unlist(str_split(x, fixed(".")))
+    splitLength <- length(splitx)
+    nodeTemp <- paste(splitx[1:(splitLength-1)], collapse = ".")
+    timeTemp <- as.numeric(splitx[splitLength])
+    #nodeTemp <- sub("\\..*", "", x)
+    #timeTemp <- as.numeric(sub('.*\\.', "", x))
     for(v in P[[x]]) {
-      pNodeTemp <- sub("\\..*", "", v)
-      pTimeTemp <- as.numeric(sub('.*\\.', "", v))
+      splitv <- unlist(str_split(v, fixed(".")))
+      splitLengthv <- length(splitv)
+      pNodeTemp <- paste(splitv[1:(splitLengthv-1)], collapse = ".")
+      pTimeTemp <- as.numeric(splitv[splitLengthv])
+      #pNodeTemp <- sub("\\..*", "", v)
+      #pTimeTemp <- as.numeric(sub('.*\\.', "", v))
       if(pTimeTemp != -1) {
         delta[v] <- delta[v] + (sigma[v] * coeff)
       }
@@ -1356,7 +1382,7 @@ get_temporal_betweenness_centrality <- function(edgeList, alpha, window, timesta
     cl <- makeCluster(nCores)
     registerDoParallel(cl = cl, cores = nCores)
     clusterExport(cl = cl, envir = .GlobalEnv, varlist = c("push", "pop", "dijkstra", "function4", "brandes_algo"))
-    TBCList <- foreach(i = vertices, .packages = c("data.table","purrr")) %dopar% {
+    TBCList <- foreach(i = vertices, .packages = c("data.table","purrr","stringr")) %dopar% {
       list(function4(node = i, window = window, nodes = nodes, graph = E_prime, timestamp = timestamp, alpha = alpha))
     }
     stopCluster(cl)
@@ -1375,7 +1401,10 @@ get_temporal_betweenness_centrality <- function(edgeList, alpha, window, timesta
   TBCTemp <- colSums(TBCMatrix)
   
   for(i in names(TBCTemp)) {
-    nodeTemp <- sub("\\..*", "", i)
+    spliti <- unlist(str_split(i, fixed(".")))
+    splitLength <- length(spliti)
+    nodeTemp <- paste(spliti[1:(splitLength-1)], collapse = ".")
+    #nodeTemp <- sub("\\..*", "", i)
     TBC[nodeTemp] <- TBC[nodeTemp] + TBCTemp[i]
   }
   
@@ -1386,12 +1415,13 @@ get_temporal_betweenness_centrality <- function(edgeList, alpha, window, timesta
   return(TBC)
 }
 
-
+##Worth modifying this to only take timeStamps as argument?
 get_sa_temporalBC <- function(hypergraphList, timeStamps, smax, windowLength, 
                               focalTimeStamp, alpha, normalized = FALSE, method = "serial", nCores = NULL){
   
   W <- seq(from = focalTimeStamp - (windowLength - 1), to = focalTimeStamp)
   focalIndices <- which(timeStamps %in% W)
+  #focalIndices <- which(W %in% timeStamps)
   
   sTBCList <- vector("list", smax)
   
@@ -1403,7 +1433,7 @@ get_sa_temporalBC <- function(hypergraphList, timeStamps, smax, windowLength,
     
     for(j in 1:length(focalIndices)) {
       
-      i <- focalIndices[j]
+      i <- timeStamps[focalIndices[j]]
       
       if(is.null(rownames(hypergraphList[[i]]))) {
         focalIncidMat <- as.matrix(hypergraphList[[i]])
@@ -1424,7 +1454,8 @@ get_sa_temporalBC <- function(hypergraphList, timeStamps, smax, windowLength,
       
       if(length(edgeListTemp) > 0) {
         focalEdgeLists[[j]] <- data.table(ID1 = as.vector(edgeListTemp[,1]), ID2 = as.vector(edgeListTemp[,2]),
-                                          time1 = timeStamps[i], time2 = timeStamps[i])
+                                          time1 = timeStamps[focalIndices[j]], time2 = timeStamps[focalIndices[j]])
+        #time1 = timeStamps[i], time2 = timeStamps[i])
       }
     }
     
@@ -1435,7 +1466,9 @@ get_sa_temporalBC <- function(hypergraphList, timeStamps, smax, windowLength,
     }
   }
   
-  allIDs <- unique(as.vector(sapply(seq(from = 1, to = length(hypergraphList)), function(x) row.names(hypergraphList[[x]]))))
+  allIDs <- sort(unique(unlist(unique(as.vector(sapply(timeStamps,
+    #seq(from = 1, to = length(hypergraphList)), 
+                                           function(x) row.names(hypergraphList[[x]])))))))
   
   matrixTemp <- matrix(0, nrow = length(allIDs), ncol = smax)
   row.names(matrixTemp) <- allIDs
