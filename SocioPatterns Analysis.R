@@ -19,7 +19,7 @@ library(stringr)
 #Create folders in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
 sTBC_results = "sTBC_SFHH_results"
-if(!file.exists(edge_lists)) dir.create(sTBC_results)
+if(!file.exists(sTBC_results)) dir.create(sTBC_results)
 
 #Import incidence matrices
 
