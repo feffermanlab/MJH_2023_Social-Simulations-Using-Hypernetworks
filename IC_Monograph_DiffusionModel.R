@@ -6,6 +6,7 @@ library(igraph)
 library(dplyr)
 library(foreach)
 library(doParallel)
+library(data.table)
 
 registerDoParallel(cores = 20)
 
@@ -14,6 +15,7 @@ registerDoParallel(cores = 20)
 #Import incidence matrices
 incidMats <- importCSVs(path = "~/scratch/IC_Monograph/SFHH/Incidence_Matrices/")
 centralityData <- importCSVs(path = "~/scratch/IC_Monograph/SFHH/Centrality_Data/")
+centralityData <- as.data.table(centralityData[[1]])
 
 #Reformat incidence matrix
 incidMat_C <- incidMats[[1]]
@@ -27,7 +29,7 @@ sim_details="Sim-details_contagionResults_DirectMetrics_July11"
 if(!file.exists(sim_details)) dir.create(sim_details)
 
 #Set random seed to ensure repeatability
-set.seed(10092023)
+set.seed(07112024)
 
 #Set simulation-wide parameters
 initialInformed = c(1,3,6,10,20)
