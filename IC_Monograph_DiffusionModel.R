@@ -114,7 +114,8 @@ foreach(i = 1:r) %dopar% {
           }
           
           t <- t + 1
-          if(t >= 5000){
+          if(sum(focalData$knowledgeState) >= (0.95 * nrow(focalData)) | 
+             t >= 5000) {
             break
           }
         }

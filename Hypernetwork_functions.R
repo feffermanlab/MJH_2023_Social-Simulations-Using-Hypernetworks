@@ -73,27 +73,6 @@ get_s_line_graph <- function(hypNet, size, vertexNames, mode){
     diag(intProf) <- 0
     matrixTemp <- ifelse(intProf >= size, 1, 0)
     
-    # matrixTemp <- matrix(0, nrow = ncol(hypNet), ncol = ncol(hypNet))
-    # colnames(matrixTemp) <- rownames(matrixTemp) <- vertexNames
-    # #colnames(matrixTemp) <- vertexNames
-    # hyperEdgeSizes <- sapply(seq(from = 1, to = ncol(hypNet)), function(x) sum(hypNet[,x] > 0))
-    # hyperEdgeIndices <- which(hyperEdgeSizes >= size)
-    # #What is the purpose of the following line? Is it supposed to be sizes?
-    # #hyperEdgeIndices <- hyperEdgeIndices[which(hyperEdgeIndices != ncol(hypNet))]
-    # if(length(hyperEdgeIndices) > 1) {
-    # for(i in hyperEdgeIndices) {
-    #   focalCol <- hypNet[,i]
-    #   refVect <- as.vector(which(focalCol>0))
-    #   #refVect <- as.vector(which(hypNet[,i]>0))
-    #   indices <- hyperEdgeIndices[which(hyperEdgeIndices != i)]
-    #   matrixTemp[i,c(indices)] <- sapply(indices, 
-    #                      function(x)
-    #                        ifelse(
-    #                        length(focalCol[c(intersect(refVect, 
-    #                                                   as.vector(which(hypNet[,x]>0))))]) >= size, 1, 0))
-    # }
-    # matrixTemp[lower.tri(matrixTemp)] <- t(matrixTemp)[lower.tri(matrixTemp)]
-    # }
   }
   else{
     if(mode == "edgeList") {
@@ -854,13 +833,13 @@ get_adjacency_matrix_from_incidence_matrix <- function(I, V, weighted = NULL) {
 do_social_contagion_initial <- function(incidMat, demonID, popData, 
                                 lambda, v, method) {
   hyperEdgesTemp <- as.vector(which(incidMat[as.character(demonID),]>0))
-  hyperEdgeWeights <- as.vector(incidMat[as.character(demonID),hyperEdgesTemp])
+  hyperEdgeWeights <- as.vector(unlist(incidMat[as.character(demonID),hyperEdgesTemp]))
   if(length(hyperEdgesTemp) > 1) {
     selectedEdge <- sample(hyperEdgesTemp, size = 1, prob = hyperEdgeWeights)
   } else{
     selectedEdge <- hyperEdgesTemp
   }
-  edgeMembers <- as.integer(names(which(incidMat[,selectedEdge]>0)))
+  edgeMembers <- as.integer(rownames(incidMat)[which(incidMat[,selectedEdge]>0)])
   naiveEdgeMembers <- edgeMembers[edgeMembers %in% popData$ID[which(popData$knowledgeState == 0)]]
   if(length(naiveEdgeMembers) > 0) {
     if(method == "groupSizeIndependent") {
