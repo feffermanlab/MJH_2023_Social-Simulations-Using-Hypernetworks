@@ -24,12 +24,14 @@ diffusionCurveData <- data.frame("uniqueID" = rep(s, maxTime),
                                  "socialReinforcement" = 0, 
                                  "seedStrategy" = 0,
                                  "timeStep" = 1:maxTime,
+                                 "initDemons" = 0,
                                  "propInformed" = 0)
 
   diffusionCurveData$topologyID <- diffDataTemp$simID[1]
   diffusionCurveData$socialReinforcement <- diffDataTemp$socialReinforcement[1]
   diffusionCurveData$seedStrategy <- diffDataTemp$seedStrategy[1]
   initialNaive <- nrow(diffDataTemp[which(diffDataTemp$acquisitionTime > 0),])
+  diffusionCurveData$initDemons <- nrow(diffDataTemp[which(diffDataTemp$initDemons == 1),])
   diffusionCurveData$propInformed <- sapply(seq(from = 1, to = maxTime), function(x) nrow(diffDataTemp[which(diffDataTemp$acquisitionTime <= x & diffDataTemp$acquisitionTime > 0),])/initialNaive)
   
 
@@ -38,6 +40,7 @@ diffusionCurveData <- data.frame("uniqueID" = rep(s, maxTime),
     "topologyID" = diffusionCurveData$topologyID[1],
     "socialReinforcement" = diffusionCurveData$socialReinforcement[1],
     "seedStrategy" = diffusionCurveData$seedStrategy[1],
+    "initDemons" = diffusionCurveData$initDemons[1],
     "T50" = min(diffusionCurveData[which(diffusionCurveData$propInformed >= 0.5),]$timeStep))
   
   write.csv(diffusionCurveData, file = file.path(sim_diffCurveData, sprintf("simData_%s_%.01i.csv", run_ID, s)))
