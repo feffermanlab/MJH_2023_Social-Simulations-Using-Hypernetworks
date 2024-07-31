@@ -25,8 +25,8 @@ colnames(incidMat_C) <- 1:ncol(incidMat_C)
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_details="Sim-details_contagionResults_IndirectMetrics_InVS15"
-#sim_details="Sim-details_contagionResults_DirectMetrics_InVS15"
+#sim_details="Sim-details_contagionResults_IndirectMetrics_InVS15"
+sim_details="Sim-details_contagionResults_DirectMetrics_InVS15"
 if(!file.exists(sim_details)) dir.create(sim_details)
 
 #Set random seed to ensure repeatability
@@ -40,8 +40,8 @@ lambda = 0.025
 
 #Set target seed strategy set and names
 seedStrategySet <- c(
-  "Betweenness","Betweenness_binary","sBC_Avg","sBC_Avg_G","random")
-  #"Degree", "Strength", "sDeg_Avg", "sDeg_Avg_G", "random")
+  #"Betweenness","Betweenness_binary","sBC_Avg","sBC_Avg_G","random")
+  "Degree", "Strength", "sDeg_Avg", "sDeg_Avg_G", "random")
 
 #Determines whether probability of learning decreases within increasing group/hyperedge size
 groupInterferenceEffect <- c("groupSizeIndependent")
