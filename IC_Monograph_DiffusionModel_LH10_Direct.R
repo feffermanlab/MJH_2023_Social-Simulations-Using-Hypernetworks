@@ -36,7 +36,7 @@ set.seed(07312024)
 
 #Set simulation-wide parameters
 initialInformed = c(1,3,6,10,20)
-lambda = 0.025
+lambda = 0.05
 
 #Set target seed strategy set and names
 seedStrategySet <- c(
