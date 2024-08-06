@@ -31,8 +31,9 @@ if(!file.exists(sim_details)) dir.create(sim_details)
 
 #Set random seed to ensure repeatability
 #set.seed(07112024)
-set.seed(07262024)
-set.seed(07312024)
+#set.seed(07262024)
+#set.seed(07312024)
+set.seed(08062024)
 
 #Set simulation-wide parameters
 initialInformed = c(1,3,6,10,20)
