@@ -1,6 +1,5 @@
 source("~/git/MJH_2023_Social-Simulations-Using-Hypernetworks/Hypernetwork_functions.R", chdir = TRUE)
 source("~/git/MJH_2023_Social-Simulations-Using-Hypernetworks/dataImportAndAggregation.R", chdir = TRUE)
-library(gdata)
 library(data.table)
 library(doParallel)
 library(igraph)
@@ -46,23 +45,10 @@ shortWindowVect = seq(from = focalTimePoint - (shortWindowLength - 1), to = foca
 longWindowVect = seq(from = focalTimePoint - (longWindowLength - 1), to = focalTimePoint)
 
 foreach(s = 1:length(lowCorIncidMats)) %dopar% {
-  
-  shortWindowStack <- vector("list", length(shortWindowVect))
-  longWindowStack <- vector("list", length(longWindowVect))
-  
-  for(t in 1:length(longWindowVect)) {
-    longWindowStack[[t]] <- lowCorIncidMats[[s]][[longWindowVect[t]]]
-    if(t > length(shortWindowStack)) {
-      next
-    }
-    shortWindowStack[[t]] <- lowCorIncidMats[[s]][[shortWindowVect[t]]]
-  }
 
   for(a in alphaValues) {
     saTBC <-get_sa_temporalBC(hypergraphList = lowCorIncidMats[[s]], timeStamps = shortWindowVect, smax = 12, 
                               windowLength = 20, focalTimeStamp = 20, alpha = a, normalized = TRUE, method = "serial", nCores = NULL)
-    
-    write.csv(saTBC[[1]], "C://Users/matth/Desktop/saTBCTest_indiv2.csv")
     dataTemp <- data.table("simID" = s, 
                            "rewireP" = 0.9, 
                            "window" = 3,
@@ -77,18 +63,7 @@ foreach(s = 1:length(lowCorIncidMats)) %dopar% {
                            "window" = 10,
                            "alpha" = a, 
                            "ID" = names(saTBC2[[2]]))
-    write.csv(cbind(dataTemp,saTBC[[1]]), file = file.path(sim_details_low, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.5, 10, a)))
-  }
-  
-  shortWindowStack <- vector("list", length(shortWindowVect))
-  longWindowStack <- vector("list", length(longWindowVect))
-
-  for(t in 1:length(longWindowVect)) {
-    longWindowStack[[t]] <- highCorIncidMats[[s]][[longWindowVect[t]]]
-    if(t > length(shortWindowStack)) {
-      next
-    }
-    shortWindowStack[[t]] <- highCorIncidMats[[s]][[shortWindowVect[t]]]
+    write.csv(cbind(dataTemp,saTBC2[[1]]), file = file.path(sim_details_low, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.5, 10, a)))
   }
 
   for(a in alphaValues) {
@@ -108,6 +83,6 @@ foreach(s = 1:length(lowCorIncidMats)) %dopar% {
                            "window" = 10,
                            "alpha" = a,
                            "ID" = names(saTBC2[[2]]))
-    write.csv(cbind(dataTemp,saTBC[[1]]), file = file.path(sim_details_high, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.1, 10, a)))
+    write.csv(cbind(dataTemp,saTBC2[[1]]), file = file.path(sim_details_high, sprintf("simData_%s_%.01i_%.02f_%.02i_%.02f.csv", run_ID, s, 0.1, 10, a)))
   }
 }
