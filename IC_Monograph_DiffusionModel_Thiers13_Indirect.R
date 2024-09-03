@@ -13,8 +13,8 @@ registerDoParallel(cores = 20)
 #stopifnot(dir.exists("Sim-incidMat_diffusionTopologies_paramSweep/"))
 
 #Import incidence matrices
-incidMats <- importCSVs(path = "~/scratch/IC_Monograph/LH10/Incidence_Matrices/")
-centralityData <- importCSVs(path = "~/scratch/IC_Monograph/LH10/Centrality_Data/")
+incidMats <- importCSVs(path = "~/scratch/IC_Monograph/Thiers13/Incidence_Matrices/")
+centralityData <- importCSVs(path = "~/scratch/IC_Monograph/Thiers13/Centrality_Data/")
 centralityData <- as.data.table(centralityData[[1]])
 
 #Reformat incidence matrix
@@ -25,18 +25,18 @@ colnames(incidMat_C) <- 1:ncol(incidMat_C)
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-sim_details="Sim-details_contagionResults_DirectMetrics_LH10"
+sim_details="Sim-details_contagionResults_IndirectMetrics_Thiers13"
 if(!file.exists(sim_details)) dir.create(sim_details)
 
 #Set random seed to ensure repeatability
-set.seed(08062024)
+set.seed(08262024)
 
 #Set simulation-wide parameters
-initialInformed = c(1,3,6)
+initialInformed = c(1,3,6,10,20)
 lambda = 0.05
 
 #Set target seed strategy set and names
-seedStrategySet <- c("Degree", "Strength", "sDeg_Avg", "sDeg_Avg_G", "random")
+seedStrategySet <- c("Betweenness","Betweenness_binary","sBC_Avg","sBC_Avg_G","random")
 
 #Determines whether probability of learning decreases within increasing group/hyperedge size
 groupInterferenceEffect <- c("groupSizeIndependent")
