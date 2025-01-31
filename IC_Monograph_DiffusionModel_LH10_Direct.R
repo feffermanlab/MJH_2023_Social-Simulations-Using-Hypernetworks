@@ -29,7 +29,8 @@ sim_details="Sim-details_contagionResults_DirectMetrics_LH10"
 if(!file.exists(sim_details)) dir.create(sim_details)
 
 #Set random seed to ensure repeatability
-set.seed(08062024)
+#set.seed(08062024)
+set.seed(01312025)
 
 #Set simulation-wide parameters
 initialInformed = c(1,3,6)
@@ -45,7 +46,7 @@ groupInterferenceEffect <- c("groupSizeIndependent")
 socialReinforcementValues <- c(1.1, 3)
 
 #Set number of replicates per condition
-r = 50
+r = 75
 
 currentIDs <- rownames(incidMat_C)
 
