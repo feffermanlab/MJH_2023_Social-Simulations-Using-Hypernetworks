@@ -14,16 +14,16 @@ source("~/git/MJH_2023_Social-Simulations-Using-Hypernetworks/multilayerHyperNet
 #source("multilayerHyperNets_simFunctions.R")
 library(igraph)
 library(data.table)
-library(parameters)
+#library(parameters)
 library(foreach)
 library(doParallel)
 
 registerDoParallel(cores = 20)
 
-bimodality <- function(skew, kurt, n) {
-  beta_coef <- (skew^2+1)/(kurt + ((3 * (n-1)^2)/((n-2)*(n-3))))
-  return(beta_coef)
-}
+# bimodality <- function(skew, kurt, n) {
+#   beta_coef <- (skew^2+1)/(kurt + ((3 * (n-1)^2)/((n-2)*(n-3))))
+#   return(beta_coef)
+# }
 
 #setwd("C://Users/matth/Desktop/Multilayer Hypernetworks/")
 
@@ -170,10 +170,10 @@ foreach(s = 1:nSims) %dopar% {
                                  "nActive" = 0,
                                  "percActive" = 0,
                                  "meanProd_I" = 0,
-                                 "varProd_I" = 0,
-                                 "skewProd_I" = 0,
-                                 "kurtProd_I" = 0,
-                                 "bimodProd_I" = 0
+                                 "varProd_I" = 0
+                                 # "skewProd_I" = 0,
+                                 # "kurtProd_I" = 0,
+                                 # "bimodProd_I" = 0
           )
           
           dataTemp$nInformed <- sum(ind_data$informed)
@@ -184,18 +184,18 @@ foreach(s = 1:nSims) %dopar% {
           
           dataTemp$meanProd_I <- mean(ind_data[which(ind_data$informed == 1),]$produce)
           dataTemp$varProd_I <- var(ind_data[which(ind_data$informed == 1),]$produce)
-          if(dataTemp$nInformed >= 3) {
-            dataTemp$skewProd_I <- skewness(ind_data[which(ind_data$informed == 1),]$produce)[[1]]
-          } else {
-            dataTemp$skewProd_I <- NA
-          } 
-          if(dataTemp$nInformed >= 4) {
-            dataTemp$kurtProd_I <- kurtosis(ind_data[which(ind_data$informed == 1),]$produce)[[1]]
-            dataTemp$bimodProd_I <- bimodality(skew = dataTemp$skewProd_I, kurt = dataTemp$kurtProd_I, n = n_indivs)
-          } else{
-            dataTemp$kurtProd_I <- NA
-            dataTemp$bimodProd_I <- NA
-          }
+          # if(dataTemp$nInformed >= 3) {
+          #   dataTemp$skewProd_I <- skewness(ind_data[which(ind_data$informed == 1),]$produce)[[1]]
+          # } else {
+          #   dataTemp$skewProd_I <- NA
+          # } 
+          # if(dataTemp$nInformed >= 4) {
+          #   dataTemp$kurtProd_I <- kurtosis(ind_data[which(ind_data$informed == 1),]$produce)[[1]]
+          #   dataTemp$bimodProd_I <- bimodality(skew = dataTemp$skewProd_I, kurt = dataTemp$kurtProd_I, n = n_indivs)
+          # } else{
+          #   dataTemp$kurtProd_I <- NA
+          #   dataTemp$bimodProd_I <- NA
+          # }
           
           dataList[[t]] <- dataTemp
           
