@@ -55,7 +55,7 @@ generate_population <- function(n_families, meanFamilySize, clustering = NULL, n
       ind_x <- ind_y <- rep(NA, nrow(ind_data))
       for(i in 1:nrow(ind_data)){
         ind_x[i] <- runif(1, 0, 1)
-        ind_y[i] <- rnorm(1, 0, 1)
+        ind_y[i] <- runif(1, 0, 1)
       }
       
       # #Rescale ind_x and ind_y to be between 0.0051 and 1

@@ -17,6 +17,7 @@ library(data.table)
 #library(parameters)
 library(foreach)
 library(doParallel)
+library(stringr)
 
 registerDoParallel(cores = 20)
 
@@ -53,7 +54,7 @@ set.seed(01092025)
 social_trans <- 0.1
 
 #Possible radii for determinig subgroups
-rad <- c(0.075, 0.15, 0.225)
+rad <- c(0.15, 0.25, 0.35)
 
 #Possible functions for determining resopnse to dominant individuals
 domResp <- c(domResponse_Linear_HE, domResponse_Sigmoid2_HE, domResponse_Linear_dyadic, domResponse_Sigmoid2_dyadic)
@@ -67,8 +68,8 @@ domDist <- c("domUni", "domExp")
 #Set number of sims per condition
 nSims = 250
 
-foreach(s = 1:nSims) %dopar% {
-#for(s in 1:nSims) {
+#foreach(s = 1:nSims) %dopar% {
+for(s in 1:nSims) {
   
   ##Generate individuals in family/kinship groups
   #For the moment, not using families in model, but keeping in case of expanding
@@ -92,10 +93,10 @@ foreach(s = 1:nSims) %dopar% {
   ##Create spatial proximity network and hypergraphs
   netList <- generate_latent_space_multilayer_hypergraph(ind_data = ind_data, r = rad)
   
-  fwrite(netList[[1]], file.path(sim_netData_dyadic, sprintf("simData_%s_%.01i.csv", run_ID, s)))
-  fwrite(netList[[2]], file.path(sim_netData_HE1, sprintf("simData_%s_%.01i.csv", run_ID, s)))
-  fwrite(netList[[3]], file.path(sim_netData_HE2, sprintf("simData_%s_%.01i.csv", run_ID, s)))
-  fwrite(netList[[4]], file.path(sim_netData_HE3, sprintf("simData_%s_%.01i.csv", run_ID, s)))
+  write.csv(netList[[1]], file.path(sim_netData_dyadic, sprintf("simData_%s_%.01i.csv", run_ID, s)))
+  write.csv(netList[[2]], file.path(sim_netData_HE1, sprintf("simData_%s_%.01i.csv", run_ID, s)))
+  write.csv(netList[[3]], file.path(sim_netData_HE2, sprintf("simData_%s_%.01i.csv", run_ID, s)))
+  write.csv(netList[[4]], file.path(sim_netData_HE3, sprintf("simData_%s_%.01i.csv", run_ID, s)))
   
   for(r in 1:length(rad)) {
     
@@ -114,7 +115,7 @@ foreach(s = 1:nSims) %dopar% {
         
         focaldomDist <- as.vector(unlist(ind_data[domDistribution]))
         domResponseFunction <- domResp[[p]]
-        radiusForDomFunction <- ifelse(p <= 3, r+1, 1)
+        radiusForDomFunction <- ifelse(str_split(domRespNames[p], "_")[[1]][2] == "dyadic", 1, r+1)
         
         ind_data$firstProd <- 0
         
