@@ -9,8 +9,9 @@ registerDoParallel(cores = 20)
 #diffDataList <- importCSVs(path = "~/scratch/IC_Monograph/Sim-details_contagionResults_DirectMetrics_InVS15/")
 #diffDataList <- importCSVs(path = "~/scratch/IC_Monograph/Sim-details_contagionResults_IndirectMetrics_InVS15/")
 #diffDataList <- importCSVs(path = "~/scratch/IC_Monograph/Sim-details_contagionResults_DirectMetrics_LH10/")
-diffDataList <- importCSVs(path = "~/scratch/IC_Monograph/Sim-details_contagionResults_IndirectMetrics_LH10/")
+#diffDataList <- importCSVs(path = "~/scratch/IC_Monograph/Sim-details_contagionResults_IndirectMetrics_LH10/")
 #diffDataList <- importCSVs(path = "~/scratch/IC_Monograph/Sim-details_contagionResults_DirectMetrics_Thiers13/")
+diffDataList <- importCSVs(path = "~/scratch/IC_Monograph/Sim-details_contagionResults_IndirectMetrics_Thiers13/")
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
@@ -24,10 +25,12 @@ run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
 #sim_T50="Sim-T50_IndirectMetrics_InVS15"
 #sim_diffCurveData="Sim-diffCurveData_DirectMetrics_LH10"
 #sim_T50="Sim-T50_DirectMetrics_LH10"
-sim_diffCurveData="Sim-diffCurveData_IndirectMetrics_LH10"
-sim_T50="Sim-T50_IndirectMetrics_LH10"
+# sim_diffCurveData="Sim-diffCurveData_IndirectMetrics_LH10"
+# sim_T50="Sim-T50_IndirectMetrics_LH10"
 #sim_diffCurveData="Sim-diffCurveData_DirectMetrics_Thiers13"
 #sim_T50="Sim-T50_DirectMetrics_Thiers13"
+sim_diffCurveData="Sim-diffCurveData_IndirectMetrics_Thiers13"
+sim_T50="Sim-T50_IndirectMetrics_Thiers13"
 if(!file.exists(sim_diffCurveData)) dir.create(sim_diffCurveData)
 if(!file.exists(sim_T50)) dir.create(sim_T50)
 
