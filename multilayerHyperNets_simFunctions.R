@@ -586,4 +586,133 @@ domResponse_wSigmoid2_dyadic <- function(ind_data, netList, radius, informedNode
   return(produceTemp)
 }
 
+
+domResponse_Linear_HE_Increasing <- function(ind_data, netList, radius, informedNodes, domValues) {
+  
+  produceTemp <- rep(0, nrow(ind_data))
+  
+  for(i in informedNodes) {
+    adjustTemp <- mean(
+      sapply(which(netList[[radius]][i,] > 0), function(x) 
+        1 - (1 - (sum(sapply(which(netList[[radius]][,x] > 0)[which(!(which(netList[[radius]][,x]>0) %in% i))], 
+                        function(y) ifelse(domValues[i]/(domValues[i] + domValues[y]) > runif(1,0,1), 0, 1))) /
+               (length(which(netList[[radius]][,x]>0)) - 1)))
+      )
+    )
+    
+    produceTemp[i] <- adjustTemp
+  }
+  
+  return(produceTemp)
+}
+
+domResponse_Linear_dyadic_Increasing <- function(ind_data, netList, radius, informedNodes, domValues) {
+  
+  produceTemp <- rep(0, nrow(ind_data))
+  
+  for(i in informedNodes) {
+    adjustTemp <- 1 - (1 - (sum(sapply(which(netList[[radius]][i,]> 0), function(y) ifelse(domValues[i]/(domValues[i] + domValues[y]) > runif(1,0,1), 0, 1)))/length(which(netList[[radius]][i,]>0))))
+    produceTemp[i] <- adjustTemp
+  }
+  
+  return(produceTemp)
+}
+
+domResponse_Sigmoid2_HE_Increasing <- function(ind_data, netList, radius, informedNodes, domValues) {
+  
+  produceTemp <- rep(0, nrow(ind_data))
+  
+  for(i in informedNodes) {
+    adjustTemp <- mean(
+      sapply(which(netList[[radius]][i,] > 0), function(x) 
+        1 - (1 / (1 + exp(0.75 * sum(sapply(which(netList[[radius]][,x] > 0)[which(!(which(netList[[radius]][,x]>0) %in% i))], 
+                                       function(y) ifelse(domValues[i]/(domValues[i] + domValues[y]) > runif(1,0,1), 0, 1))) - 
+                       ((length(which(netList[[radius]][,x]>0)) - 1)/5))
+        ))
+      )
+    )
+    
+    produceTemp[i] <- adjustTemp
+  }
+  
+  return(produceTemp)
+}
+
+domResponse_Sigmoid2_dyadic_Increasing <- function(ind_data, netList, radius, informedNodes, domValues) {
+  
+  produceTemp <- rep(0, nrow(ind_data))
+  
+  for(i in informedNodes) {
+    adjustTemp <- 1 - (1 / (1 + exp(0.75 * sum(sapply(which(netList[[radius]][i,]> 0), function(y) 
+      ifelse(domValues[i]/(domValues[i] + domValues[y]) > runif(1,0,1), 0, 1))) - 
+        (length(which(netList[[radius]][i,]>0))/5))))
+    produceTemp[i] <- adjustTemp
+  }
+  
+  return(produceTemp)
+}
+
+domResponse_wLinear_dyadic_Increasing <- function(ind_data, netList, radius, informedNodes, domValues) {
+  produceTemp <- rep(0, nrow(ind_data))
+  
+  for(i in informedNodes){
+    adjustTemp <- 1 - (1 - weighted.mean(sapply(which(netList[[radius]][i,]> 0), function(y) ifelse(domValues[i]/(domValues[i] + domValues[y]) > runif(1,0,1), 0, 1)), 
+                                    w = domValues[which(netList[[radius]][i,]> 0)]/domValues[i]))
+    produceTemp[i] <- adjustTemp
+  }
+  
+  return(produceTemp)
+}
+
+domResponse_wSigmoid2_dyadic_Increasing <- function(ind_data, netList, radius, informedNodes, domValues) {
+  
+  produceTemp <- rep(0, nrow(ind_data))
+  
+  for(i in informedNodes) {
+    adjustTemp <- 1 - (1 / (1 + exp(0.75 * sum(sapply(which(netList[[radius]][i,]> 0), function(y) 
+      ifelse(domValues[i]/(domValues[i] + domValues[y]) > runif(1,0,1), 0, 1)) * 
+        (domValues[which(netList[[radius]][i,]> 0)]/domValues[i])) - 
+        (sum(domValues[which(netList[[radius]][i,]> 0)]/domValues[i])/5))))
+    produceTemp[i] <- adjustTemp
+  }
+  
+  return(produceTemp)
+}
+
+domResponse_wLinear_HE_Increasing <- function(ind_data, netList, radius, informedNodes, domValues) {
+  produceTemp <- rep(0, nrow(ind_data))
+  
+  for(i in informedNodes){
+    adjustTemp <- mean(
+      sapply(which(netList[[radius]][i,] > 0), function(x) 
+        1 - (1 - weighted.mean(sapply(which(netList[[radius]][,x] > 0)[which(!(which(netList[[radius]][,x]>0) %in% i))], 
+                                 function(y) ifelse(domValues[i]/(domValues[i] + domValues[y]) > runif(1,0,1), 0, 1)), 
+                          w = domValues[which(netList[[radius]][,x] > 0)[which(!(which(netList[[radius]][,x]>0) %in% i))]]/domValues[i]))
+      ))
+    produceTemp[i] <- adjustTemp
+  }
+  
+  return(produceTemp)
+}
+
+domResponse_wSigmoid2_HE_Increasing <- function(ind_data, netList, radius, informedNodes, domValues) {
+  produceTemp <- rep(0, nrow(ind_data))
+  
+  for(i in informedNodes) {
+    adjustTemp <- mean(
+      sapply(which(netList[[radius]][i,] > 0), function(x) 
+        1 - (1 / (1 + exp(0.75 * sum(sapply(which(netList[[radius]][,x] > 0)[which(!(which(netList[[radius]][,x]>0) %in% i))], 
+                                       function(y) ifelse(domValues[i]/(domValues[i] + domValues[y]) > runif(1,0,1), 0, 1)) *
+                                  (domValues[which(netList[[radius]][,x] > 0)[which(!(which(netList[[radius]][,x]>0) %in% i))]] / 
+                                     domValues[i])) - 
+                       sum(domValues[which(netList[[radius]][,x] > 0)[which(!(which(netList[[radius]][,x]>0) %in% i))]] / 
+                             domValues[i])/5)))
+      )
+    )
+    
+    produceTemp[i] <- adjustTemp
+  }
+  
+  return(produceTemp)
+}
 #1/(1+exp((0.75*sum(c(0,1,1)*(testVect/testFocal)))-(sum(testVect/testFocal)/5)))
