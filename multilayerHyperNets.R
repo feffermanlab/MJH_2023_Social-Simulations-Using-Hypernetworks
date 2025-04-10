@@ -58,7 +58,8 @@ if(!file.exists(sim_netData_HE3)) dir.create(sim_netData_HE3)
 
 ##Set seed for reproducibility
 #set.seed(01092025)
-set.seed(03042025)
+#set.seed(03042025)
+set.seed(04102025)
 
 #Set social transmission rate; determines baseline probability of learning from an active neighbor in the dyadic layer
 social_trans <- 0.1
