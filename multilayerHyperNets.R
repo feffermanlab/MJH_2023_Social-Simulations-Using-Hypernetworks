@@ -29,23 +29,23 @@ registerDoParallel(cores = 20)
 
 #Create folder in which to store simulation results
 run_ID=strftime(Sys.time(), format="d3%Y%m%d%H%M%S")
-# sim_indData="Sim_individual_level_data"
-# sim_summaryData="Sim_summary_data"
-# sim_subGroupSimilarity  = "Sim_subgroup_similarity_data"
-# sim_diffSummaryData = "Sim_diffusion_summary_data"
-# sim_netData_dyadic = "Sim_dyadic_network"
-# sim_netData_HE1 = "Sim_higherOrder_network_1"
-# sim_netData_HE2 = "Sim_higherOrder_network_2"
-# sim_netData_HE3 = "Sim_higherOrder_network_3"
+sim_indData="Sim_individual_level_data"
+sim_summaryData="Sim_summary_data"
+sim_subGroupSimilarity  = "Sim_subgroup_similarity_data"
+sim_diffSummaryData = "Sim_diffusion_summary_data"
+sim_netData_dyadic = "Sim_dyadic_network"
+sim_netData_HE1 = "Sim_higherOrder_network_1"
+sim_netData_HE2 = "Sim_higherOrder_network_2"
+sim_netData_HE3 = "Sim_higherOrder_network_3"
 
-sim_indData="Sim_individual_level_data_Inc"
-sim_summaryData="Sim_summary_data_Inc"
-sim_subGroupSimilarity  = "Sim_subgroup_similarity_data_Inc"
-sim_diffSummaryData = "Sim_diffusion_summary_data_Inc"
-sim_netData_dyadic = "Sim_dyadic_network_Inc"
-sim_netData_HE1 = "Sim_higherOrder_network_1_Inc"
-sim_netData_HE2 = "Sim_higherOrder_network_2_Inc"
-sim_netData_HE3 = "Sim_higherOrder_network_3_Inc"
+# sim_indData="Sim_individual_level_data_Inc"
+# sim_summaryData="Sim_summary_data_Inc"
+# sim_subGroupSimilarity  = "Sim_subgroup_similarity_data_Inc"
+# sim_diffSummaryData = "Sim_diffusion_summary_data_Inc"
+# sim_netData_dyadic = "Sim_dyadic_network_Inc"
+# sim_netData_HE1 = "Sim_higherOrder_network_1_Inc"
+# sim_netData_HE2 = "Sim_higherOrder_network_2_Inc"
+# sim_netData_HE3 = "Sim_higherOrder_network_3_Inc"
 
 if(!file.exists(sim_indData)) dir.create(sim_indData)
 if(!file.exists(sim_summaryData)) dir.create(sim_summaryData)
@@ -68,16 +68,15 @@ social_trans <- 0.1
 rad <- c(0.15, 0.25, 0.35)
 
 #Possible functions for determining resopnse to dominant individuals
-# domResp <- c(domResponse_Linear_HE, domResponse_Sigmoid2_HE, domResponse_Linear_dyadic, domResponse_Sigmoid2_dyadic, 
-#              domResponse_wLinear_HE, domResponse_wSigmoid2_HE, domResponse_wLinear_dyadic, domResponse_wSigmoid2_dyadic,
-#              domResponse_grpAvg_HE, domResponse_grpAvg_dyadic)
+domResp <- c(domResponse_Linear_HE, domResponse_Sigmoid2_HE, domResponse_Linear_dyadic, domResponse_Sigmoid2_dyadic,
+             domResponse_wLinear_HE, domResponse_wSigmoid2_HE, domResponse_wLinear_dyadic, domResponse_wSigmoid2_dyadic,
+             domResponse_grpAvg_HE, domResponse_grpAvg_dyadic)
 
-domResp <- c(domResponse_Linear_HE_Increasing, domResponse_Sigmoid2_HE_Increasing, domResponse_Linear_dyadic_Increasing, domResponse_Sigmoid2_dyadic_Increasing, 
-             domResponse_wLinear_HE_Increasing, domResponse_wSigmoid2_HE_Increasing, domResponse_wLinear_dyadic_Increasing, domResponse_wSigmoid2_dyadic_Increasing)
+# domResp <- c(domResponse_Linear_HE_Increasing, domResponse_Sigmoid2_HE_Increasing, domResponse_Linear_dyadic_Increasing, domResponse_Sigmoid2_dyadic_Increasing, 
+#              domResponse_wLinear_HE_Increasing, domResponse_wSigmoid2_HE_Increasing, domResponse_wLinear_dyadic_Increasing, domResponse_wSigmoid2_dyadic_Increasing)
 
 domRespNames <- c("Linear_HE", "Sigmoid2_HE", "Linear_dyadic", "Sigmoid2_dyadic",
                   "wLinear_HE", "wSigmoid2_HE", "wLinear_dyadic", "wSigmoid2_dyadic")
-                  #, "grpAvg_HE", "grpAvg_dyadic")
 
 #Distributions for dominance ranks
 domDist <- c("domUni", "domExp")
@@ -163,7 +162,7 @@ foreach(s = 1:nSims) %dopar% {
         }
         
         #Determine individuals' likelihood of learning the trait based on their relative connection strength to informed individuals in the dyadic layer
-        ind_data$acqProb <- sapply(1:nrow(ind_data), function(x) social_trans * sum(netList[[1]][,x] * ind_data$informed) / sum(netList[[1]][,x]))
+        ind_data$acqProb <- sapply(1:nrow(ind_data), function(x) social_trans * sum(netList[[1]][,x] * ind_data$active) / sum(netList[[1]][,x]))
         ind_data$acqProb <- ifelse(is.na(ind_data$acqProb), 0, ind_data$acqProb)
         
         #Record those individuals that acquired the trait and note the time step at which this occurred
@@ -297,7 +296,7 @@ foreach(s = 1:nSims) %dopar% {
           }
           
           #Determine individuals' likelihood of learning the trait based on their relative connection strength to informed individuals in the dyadic layer
-          ind_data$acqProb <- sapply(1:nrow(ind_data), function(x) social_trans * sum(netList[[1]][,x] * ind_data$informed) / sum(netList[[1]][,x]))
+          ind_data$acqProb <- sapply(1:nrow(ind_data), function(x) social_trans * sum(netList[[1]][,x] * ind_data$active) / sum(netList[[1]][,x]))
           ind_data$acqProb <- ifelse(is.na(ind_data$acqProb), 0, ind_data$acqProb)
           
           #Record those individuals that acquired the trait and note the time step at which this occurred
