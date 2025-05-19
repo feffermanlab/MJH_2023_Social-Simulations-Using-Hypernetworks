@@ -57,9 +57,9 @@ if(!file.exists(sim_netData_HE2)) dir.create(sim_netData_HE2)
 if(!file.exists(sim_netData_HE3)) dir.create(sim_netData_HE3)
 
 ##Set seed for reproducibility
-#set.seed(01092025)
+set.seed(01092025)
 #set.seed(03042025)
-set.seed(04102025)
+#set.seed(04102025)
 
 #Set social transmission rate; determines baseline probability of learning from an active neighbor in the dyadic layer
 social_trans <- 0.1
@@ -69,8 +69,7 @@ rad <- c(0.15, 0.25, 0.35)
 
 #Possible functions for determining resopnse to dominant individuals
 domResp <- c(domResponse_Linear_HE, domResponse_Sigmoid2_HE, domResponse_Linear_dyadic, domResponse_Sigmoid2_dyadic,
-             domResponse_wLinear_HE, domResponse_wSigmoid2_HE, domResponse_wLinear_dyadic, domResponse_wSigmoid2_dyadic,
-             domResponse_grpAvg_HE, domResponse_grpAvg_dyadic)
+             domResponse_wLinear_HE, domResponse_wSigmoid2_HE, domResponse_wLinear_dyadic, domResponse_wSigmoid2_dyadic)
 
 # domResp <- c(domResponse_Linear_HE_Increasing, domResponse_Sigmoid2_HE_Increasing, domResponse_Linear_dyadic_Increasing, domResponse_Sigmoid2_dyadic_Increasing, 
 #              domResponse_wLinear_HE_Increasing, domResponse_wSigmoid2_HE_Increasing, domResponse_wLinear_dyadic_Increasing, domResponse_wSigmoid2_dyadic_Increasing)
