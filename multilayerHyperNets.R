@@ -57,9 +57,10 @@ if(!file.exists(sim_netData_HE2)) dir.create(sim_netData_HE2)
 if(!file.exists(sim_netData_HE3)) dir.create(sim_netData_HE3)
 
 ##Set seed for reproducibility
-set.seed(01092025)
+#set.seed(01092025)
 #set.seed(03042025)
 #set.seed(04102025)
+set.seed(5212025)
 
 #Set social transmission rate; determines baseline probability of learning from an active neighbor in the dyadic layer
 social_trans <- 0.1
@@ -90,7 +91,8 @@ foreach(s = 1:nSims) %dopar% {
   
   ##Generate individuals in family/kinship groups
   #For the moment, not using families in model, but keeping in case of expanding
-  ind_data <- generate_population(n_families = 25, meanFamilySize = 4, clustering = 0.075, nInitInformed = 1, clusterByFamily = FALSE)
+  ind_data <- generate_population(n_families = 25, meanFamilySize = 4, clustering = 0.075, 
+                                  nInitInformed = 1, clusterByFamily = FALSE, minRadius = rad[1])
   n_indivs <- nrow(ind_data)
   ind_data$simID <- s
   
@@ -132,7 +134,7 @@ foreach(s = 1:nSims) %dopar% {
       ind_data$firstProd <- 0
       
       #Create list for holding output on each time step
-      dataList <- vector("list", 8000)
+      dataList <- vector("list", 20000)
       
       #Set initial time
       t = 1
@@ -198,7 +200,7 @@ foreach(s = 1:nSims) %dopar% {
         dataList[[t]] <- dataTemp
         
         #If all individuals are informed or an inordinately long time has elapsed, end the sim
-        if(sum(ind_data$firstProd >0) == nrow(ind_data) | t == 8000) {
+        if(sum(ind_data$firstProd >0) == nrow(ind_data) | t == 20000) {
           break
         }
         
@@ -212,13 +214,14 @@ foreach(s = 1:nSims) %dopar% {
       diffusionSummary <- data.table("simID" = s, "domDist" = domDistribution,
                                      "domResponse" = domRespNames[p], "groupRadius" = rad[r],
                                      "TTD" = max(ind_data$acqTime), "TTFP" = max(ind_data$firstProd),
-                                     "numIndivs" = n_indivs, "numProducers" = 0,
+                                     "numIndivs" = n_indivs, "numProducers" = 0, "numInformed" = 0,
                                      "orderDiv" = 0,
                                      "propDiv" = 0,
                                      "timeDelay" = 0,
                                      "burstiness" = 0)
       
       numProducers <- nrow(ind_data[which(ind_data$firstProd > 0),])
+      numInformed <- nrow(ind_data[which(ind_data$informed > 0),])
       orderDiv <- (1/(numProducers - 1)) * 
         sum(abs(rank(ind_data[which(ind_data$acqTime > 0  & ind_data$firstProd > 0),]$acqTime) - 
                   rank(ind_data[which(ind_data$acqTime > 0 & ind_data$firstProd > 0),]$firstProd)))
@@ -227,6 +230,7 @@ foreach(s = 1:nSims) %dopar% {
       timeDelay <- (1/numProducers) * sum(abs(ind_data[which(ind_data$firstProd > 0),]$acqTime - 
                                                 ind_data[which(ind_data$firstProd > 0),]$firstProd))
       
+      diffusionSummary$numInformed <- numInformed
       diffusionSummary$numProducers <- numProducers
       diffusionSummary$orderDiv <- orderDiv
       diffusionSummary$propDiv <- propDiv
@@ -266,7 +270,7 @@ foreach(s = 1:nSims) %dopar% {
         ind_data$firstProd <- 0
         
         #Create list for holding output on each time step
-        dataList <- vector("list", 8000)
+        dataList <- vector("list", 20000)
         
         #Set initial time
         t = 1
@@ -332,7 +336,7 @@ foreach(s = 1:nSims) %dopar% {
           dataList[[t]] <- dataTemp
           
           #If all individuals are informed or an inordinately long time has elapsed, end the sim
-          if(sum(ind_data$firstProd >0) == nrow(ind_data) | t == 8000) {
+          if(sum(ind_data$firstProd >0) == nrow(ind_data) | t == 20000) {
             break
           }
           
@@ -346,12 +350,13 @@ foreach(s = 1:nSims) %dopar% {
         diffusionSummary <- data.table("simID" = s, "domDist" = domDistribution,
                                        "domResponse" = domRespNames[p], "groupRadius" = rad[r],
                                        "TTD" = max(ind_data$acqTime), "TTFP" = max(ind_data$firstProd),
-                                       "numIndivs" = n_indivs, "numProducers" = 0,
+                                       "numIndivs" = n_indivs, "numProducers" = 0, "numInformed" = 0,
                                        "orderDiv" = 0,
                                        "propDiv" = 0,
                                        "timeDelay" = 0,
                                        "burstiness" = 0)
         
+        numInformed <- nrow(ind_data[which(ind_data$informed > 0),])
         numProducers <- nrow(ind_data[which(ind_data$firstProd > 0),])
         orderDiv <- (1/(numProducers - 1)) * 
           sum(abs(rank(ind_data[which(ind_data$acqTime > 0  & ind_data$firstProd > 0),]$acqTime) - 
@@ -361,6 +366,7 @@ foreach(s = 1:nSims) %dopar% {
         timeDelay <- (1/numProducers) * sum(abs(ind_data[which(ind_data$firstProd > 0),]$acqTime - 
                                                   ind_data[which(ind_data$firstProd > 0),]$firstProd))
         
+        diffusionSummary$numInformed <- numInformed
         diffusionSummary$numProducers <- numProducers
         diffusionSummary$orderDiv <- orderDiv
         diffusionSummary$propDiv <- propDiv

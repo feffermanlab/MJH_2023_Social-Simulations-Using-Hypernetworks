@@ -1,5 +1,5 @@
 ##Generate individuals in family/kinship groups and spatially embed them in x-y grid
-generate_population <- function(n_families, meanFamilySize, clustering = NULL, nInitInformed, clusterByFamily) {
+generate_population <- function(n_families, meanFamilySize, clustering = NULL, nInitInformed, clusterByFamily, minRadius) {
   #Calculate family size
   family_size <- rpois(n_families, meanFamilySize)
   
@@ -57,6 +57,20 @@ generate_population <- function(n_families, meanFamilySize, clustering = NULL, n
         ind_x[i] <- runif(1, 0, 1)
         ind_y[i] <- runif(1, 0, 1)
       }
+      
+      dist_mat <- as.matrix(dist(cbind(ind_x, ind_y)))
+      if(sum(sapply(1:ncol(dist_mat), function(x) min(dist_mat[x,][dist_mat[x,]>0])) > minRadius) > 0) {
+      for(i in which(sapply(1:ncol(dist_mat), function(x) min(dist_mat[x,][dist_mat[x,]>0])) > minRadius)) {
+        repeat{
+        ind_x[i] <- runif(1, 0, 1)
+        ind_y[i] <- runif(1, 0, 1)
+        if(min(as.matrix(dist(cbind(ind_x, ind_y)))[i,][as.matrix(dist(cbind(ind_x, ind_y)))[i,]>0]) < minRadius) {
+          break
+        }
+        }
+      }
+      }
+      
       
       # #Rescale ind_x and ind_y to be between 0.0051 and 1
       # #0.0051 is selected as a minimum so that the round function will produce a value of at least 1 when a coordinate is multiplied by 100 (see resource matrix below)
