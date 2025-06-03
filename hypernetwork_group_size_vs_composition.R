@@ -1,6 +1,6 @@
 
 #Load packages
-source("~/git/MJH_2023_Social-Simulations-Using-Hypernetworks/hypernetwork_group_size_vs_composition.R", chdir = TRUE)
+source("~/git/MJH_2023_Social-Simulations-Using-Hypernetworks/hypernetwork_group_size_vs_composition_simFunctions.R", chdir = TRUE)
 #source("hypernetwork_group_size_vs_composition_simFunctions.R")
 library(igraph)
 library(asnipe)
