@@ -111,7 +111,7 @@ foreach(s = 1:nSims) %dopar% {
           informedNodes <- ind_data[which(ind_data$informed == 1),]$id
           
           #Each informed individual updates its likelihood of producing a novel behavior by:
-          learningOutcomes <- dyadic_diffusion(ind_data = ind_data, network = r, netList = netList, informedNodes = informedNodes, domValues = focaldomDist)
+          learningOutcomes <- dyadic_diffusion(ind_data = ind_data, network = r, netList = netList, informedNodes = informedNodes, domValues = focaldomDist, groupAdjustment = g)
           ind_data$active <- learningOutcomes[[1]]
           ind_data$newLearners <- learningOutcomes[[2]]
           
@@ -186,9 +186,9 @@ foreach(s = 1:nSims) %dopar% {
         intervalData <- sapply(1:(length(ind_data$acqTime) - 1), function(x) sort(ind_data$acqTime)[x+1] - sort(ind_data$acqTime)[x])
         diffusionSummary$burstiness <- (sd(intervalData)-mean(intervalData))/(sd(intervalData) + mean(intervalData))
         
-        fwrite(ind_data, file = file.path(sim_indData, sprintf("simData_%s_%.01i_%s_%.02f_%s_%s.csv", run_ID, s, paste("hyper", (r+1)/2, sep = "_"), R, domDistribution, g)))
-        fwrite(dataCombined, file = file.path(sim_summaryData, sprintf("simData_%s_%.01i_%s_%.02f_%s_%s.csv", run_ID, s, paste("hyper", (r+1)/2, sep = "_"), R, domDistribution, g)))
-        fwrite(diffusionSummary, file = file.path(sim_diffSummaryData, sprintf("simData_%s_%.01i_%s_%.02f_%s_%s.csv", run_ID, s, paste("hyper", (r+1)/2, sep = "_"), R, domDistribution, g)))
+        fwrite(ind_data, file = file.path(sim_indData, sprintf("simData_%s_%.01i_%s_%.02f_%s_%s.csv", run_ID, s, paste("dyad", (r+1)/2, sep = "_"), R, domDistribution, g)))
+        fwrite(dataCombined, file = file.path(sim_summaryData, sprintf("simData_%s_%.01i_%s_%.02f_%s_%s.csv", run_ID, s, paste("dyad", (r+1)/2, sep = "_"), R, domDistribution, g)))
+        fwrite(diffusionSummary, file = file.path(sim_diffSummaryData, sprintf("simData_%s_%.01i_%s_%.02f_%s_%s.csv", run_ID, s, paste("dyad", (r+1)/2, sep = "_"), R, domDistribution, g)))
         
         } 
       }
@@ -218,7 +218,7 @@ foreach(s = 1:nSims) %dopar% {
           
           #Each informed individual updates its likelihood of producing a novel behavior by:
           learningOutcomes <- hyperNetwork_diffusion(ind_data = ind_data, network = r, netList = netList, resources = resources,
-                                                              informedNodes = informedNodes, domValues = focaldomDist)
+                                                              informedNodes = informedNodes, domValues = focaldomDist, groupAdjustment = g)
           ind_data$active <- learningOutcomes[[1]]
           ind_data$newLearners <- learningOutcomes[[2]]
           
