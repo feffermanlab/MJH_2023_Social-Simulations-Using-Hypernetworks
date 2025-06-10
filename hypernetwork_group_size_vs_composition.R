@@ -97,7 +97,7 @@ foreach(s = 1:nSims) %dopar% {
         ind_data$network <- paste("dyadic", (r+1)/2, sep = "_")
         focaldomDist <- as.vector(unlist(ind_data[domDistribution]))
         
-        resources <- R * round(mean(colSums(netList[[r+1]])))
+        resources <- round(R * mean(colSums(netList[[r+1]])))
         
         #Create list for holding output on each time step
         dataList <- vector("list", 8000)
@@ -111,7 +111,7 @@ foreach(s = 1:nSims) %dopar% {
           informedNodes <- ind_data[which(ind_data$informed == 1),]$id
           
           #Each informed individual updates its likelihood of producing a novel behavior by:
-          learningOutcomes <- dyadic_diffusion(ind_data = ind_data, network = r, netList = netList, informedNodes = informedNodes, domValues = focaldomDist, groupAdjustment = g)
+          learningOutcomes <- dyadic_diffusion(ind_data = ind_data, network = r, netList = netList, informedNodes = informedNodes, domValues = focaldomDist, groupAdjustment = g, resources = resources)
           ind_data$active <- learningOutcomes[[1]]
           ind_data$newLearners <- learningOutcomes[[2]]
           
@@ -218,7 +218,7 @@ foreach(s = 1:nSims) %dopar% {
           
           #Each informed individual updates its likelihood of producing a novel behavior by:
           learningOutcomes <- hyperNetwork_diffusion(ind_data = ind_data, network = r, netList = netList, resources = resources,
-                                                              informedNodes = informedNodes, domValues = focaldomDist, groupAdjustment = g)
+                                                              informedNodes = informedNodes, domValues = focaldomDist, groupAdjustment = g, resources = resources)
           ind_data$active <- learningOutcomes[[1]]
           ind_data$newLearners <- learningOutcomes[[2]]
           

@@ -143,7 +143,8 @@ generate_latent_space_multilayer_hypergraph <- function(ind_data, r) {
   return(list(sp_dyNet1, sp_hyp1, sp_dyNet2, sp_hyp2, sp_dyNet3, sp_hyp3))
 }
 
-hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE) {
+hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE, 
+                                   resources = resources) {
   
   produceTemp <- rep(0, nrow(ind_data))
   newLearner <- rep(0, nrow(ind_data))
@@ -160,9 +161,9 @@ hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, do
                               prob = domValues[currentInformed]))
     }
     
-    gA <- ifelse(groupAdjustment, length(focalHyperedgeMembs)-length(demons), 1)
     produceTemp[demons] <- 1
     currentUninformed <- focalHyperedgeMembs[!(focalHyperedgeMembs %in% currentInformed)]
+    gA <- ifelse(groupAdjustment, length(focalHyperedgeMembs), 1)
     learningOutcomes <- runif(length(currentUninformed)) < (1 - (1 - social_trans/gA)^length(demons))
     
     if(length(currentUninformed[learningOutcomes]) > 0) {
@@ -173,10 +174,8 @@ hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, do
   return(list(produceTemp,newLearner))
 }
 
-###OLD
-#learningOutcomes <- runif(length(currentUninformed)) < (social_trans * length(demons)/(length(focalHyperedgeMembs)-length(demons)))
-
-dyadic_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE) {
+dyadic_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE, 
+                             resources = resources) {
   
   produceTemp <- rep(0, nrow(ind_data))
   focalGraph <- graph_from_adjacency_matrix(netList[[network]], weighted = TRUE, mode = c("undirected"))
@@ -196,8 +195,8 @@ dyadic_diffusion <- function(ind_data, netList, network, informedNodes, domValue
   }
   
   if(groupAdjustment) {
-    acqProb <- sapply(1:nrow(ind_data), function(x) 1-prod(1-(produceTemp*netList[[network]][x,]*social_trans)/
-                                                             (1+sum(ifelse(ind_data$informed==1,0,1)*netList[[network]][x,]))))
+    acqProb <- sapply(1:nrow(ind_data), function(x) 1-prod(1-(produceTemp*netList[[network]][x,]*social_trans)/(rowSums(netList[[network]]))))
+                                                               #1+sum(ifelse(ind_data$informed==1,0,1)*netList[[network]][x,])
   } else{
     acqProb <- sapply(1:nrow(ind_data), function(x) 1-prod(1-produceTemp*netList[[network]][x,]*social_trans))
   }
