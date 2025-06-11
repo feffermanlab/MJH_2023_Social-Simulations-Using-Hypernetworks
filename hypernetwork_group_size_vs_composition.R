@@ -206,7 +206,7 @@ foreach(s = 1:nSims) %dopar% {
         #Create list for holding output on each time step
         dataList <- vector("list", 8000)
         
-        resources <- R * round(mean(colSums(netList[[r]])))
+        resources <- round(R * mean(colSums(netList[[r]])))
         
         #Set initial time
         t = 1
@@ -218,7 +218,7 @@ foreach(s = 1:nSims) %dopar% {
           
           #Each informed individual updates its likelihood of producing a novel behavior by:
           learningOutcomes <- hyperNetwork_diffusion(ind_data = ind_data, network = r, netList = netList, resources = resources,
-                                                              informedNodes = informedNodes, domValues = focaldomDist, groupAdjustment = g, resources = resources)
+                                                              informedNodes = informedNodes, domValues = focaldomDist, groupAdjustment = g)
           ind_data$active <- learningOutcomes[[1]]
           ind_data$newLearners <- learningOutcomes[[2]]
           
