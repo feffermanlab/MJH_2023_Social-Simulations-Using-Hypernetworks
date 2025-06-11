@@ -143,8 +143,7 @@ generate_latent_space_multilayer_hypergraph <- function(ind_data, r) {
   return(list(sp_dyNet1, sp_hyp1, sp_dyNet2, sp_hyp2, sp_dyNet3, sp_hyp3))
 }
 
-hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE, 
-                                   resources = resources) {
+hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE) {
   
   produceTemp <- rep(0, nrow(ind_data))
   newLearner <- rep(0, nrow(ind_data))
@@ -174,8 +173,7 @@ hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, do
   return(list(produceTemp,newLearner))
 }
 
-dyadic_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE, 
-                             resources = resources) {
+dyadic_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE) {
   
   produceTemp <- rep(0, nrow(ind_data))
   focalGraph <- graph_from_adjacency_matrix(netList[[network]], weighted = TRUE, mode = c("undirected"))
