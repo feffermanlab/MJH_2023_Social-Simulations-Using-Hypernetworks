@@ -169,9 +169,9 @@ generate_latent_space_multilayer_hypergraph <- function(ind_data, r) {
 #      newLearner[currentUninformed[learningOutcomes]] <- 1
 #    }
 #  }
-  
-  return(list(produceTemp,newLearner))
-}
+#  
+#  return(list(produceTemp,newLearner))
+#}
 
 hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE) {
   
