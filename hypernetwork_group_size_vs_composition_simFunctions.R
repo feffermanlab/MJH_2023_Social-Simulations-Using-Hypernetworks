@@ -143,31 +143,80 @@ generate_latent_space_multilayer_hypergraph <- function(ind_data, r) {
   return(list(sp_dyNet1, sp_hyp1, sp_dyNet2, sp_hyp2, sp_dyNet3, sp_hyp3))
 }
 
+#hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE) {
+#  
+#  produceTemp <- rep(0, nrow(ind_data))
+#  newLearner <- rep(0, nrow(ind_data))
+#  
+#  for(i in informedNodes) {
+#    focalHyperedge <- ifelse(length(which(netList[[network]][i,]>0)) > 1, sample(which(netList[[network]][i,]>0),1), which(netList[[network]][i,]>0))
+#    focalHyperedgeMembs <- which(netList[[network]][,focalHyperedge]>0)
+#    currentInformed <- focalHyperedgeMembs[focalHyperedgeMembs %in% informedNodes]
+#    
+#    if(length(currentInformed)==1){
+#      demons <- currentInformed
+#    } else{
+#      demons <- unique(sample(currentInformed, resources, replace = TRUE, 
+#                              prob = domValues[currentInformed]))
+#    }
+#    
+#    produceTemp[demons] <- 1
+#    currentUninformed <- focalHyperedgeMembs[!(focalHyperedgeMembs %in% currentInformed)]
+#    gA <- ifelse(groupAdjustment, length(focalHyperedgeMembs), 1)
+#    learningOutcomes <- runif(length(currentUninformed)) < (1 - (1 - social_trans/gA)^length(demons))
+#    
+#    if(length(currentUninformed[learningOutcomes]) > 0) {
+#      newLearner[currentUninformed[learningOutcomes]] <- 1
+#    }
+#  }
+  
+  return(list(produceTemp,newLearner))
+}
+
 hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, domValues, resources, groupAdjustment = FALSE) {
   
   produceTemp <- rep(0, nrow(ind_data))
   newLearner <- rep(0, nrow(ind_data))
   
-  for(i in informedNodes) {
-    focalHyperedge <- ifelse(length(which(netList[[network]][i,]>0)) > 1, sample(which(netList[[network]][i,]>0),1), which(netList[[network]][i,]>0))
+  focalHyperedges <- unique(sort(unlist(sapply(informedNodes, function(x) which(netList[[network]][x,]>0)))))
+  demonList <- vector("list", length(focalHyperedges))
+  for(i in 1:length(focalHyperedges)) {
+    focalHyperedge <- focalHyperedges[i]
     focalHyperedgeMembs <- which(netList[[network]][,focalHyperedge]>0)
     currentInformed <- focalHyperedgeMembs[focalHyperedgeMembs %in% informedNodes]
-    
     if(length(currentInformed)==1){
-      demons <- currentInformed
+      demonList[[i]] <- currentInformed
     } else{
-      demons <- unique(sample(currentInformed, resources, replace = TRUE, 
+      demonList[[i]] <- unique(sample(currentInformed, resources, replace = TRUE, 
                               prob = domValues[currentInformed]))
     }
-    
-    produceTemp[demons] <- 1
-    currentUninformed <- focalHyperedgeMembs[!(focalHyperedgeMembs %in% currentInformed)]
-    gA <- ifelse(groupAdjustment, length(focalHyperedgeMembs), 1)
-    learningOutcomes <- runif(length(currentUninformed)) < (1 - (1 - social_trans/gA)^length(demons))
-    
+  }
+  for(i in informedNodes){
+    produceTemp[i] <- ifelse(runif(1,0,1) < sum(unlist(demonList) == i)/length(which(netList[[network]][i,]>0)),1,0)
+  }
+  
+  activeNodes <- which(produceTemp>0)
+  
+  activeHyperedges <- unique(sort(unlist(sapply(activeNodes, function(x) which(netList[[network]][x,]>0)))))
+  learnerList <- vector("list", length(activeHyperedges))
+  
+  for(i in 1:length(activeHyperedges)) {
+    activeHyperedge <- activeHyperedges[i]
+    activeHyperedgeMembs <- which(netList[[network]][,activeHyperedge]>0)
+    currentInformed <- activeHyperedgeMembs[activeHyperedgeMembs %in% informedNodes]
+    currentActive <- activeHyperedgeMembs[activeHyperedgeMembs %in% activeNodes]
+    currentUninformed <- activeHyperedgeMembs[!(activeHyperedgeMembs %in% currentInformed)]
+    gA <- ifelse(groupAdjustment, length(activeHyperedgeMembs), 1)
+    learningOutcomes <- runif(length(currentUninformed)) < (1 - (1 - social_trans/gA)^length(currentActive))
     if(length(currentUninformed[learningOutcomes]) > 0) {
-      newLearner[currentUninformed[learningOutcomes]] <- 1
+      learnerList[[i]] <- currentUninformed[learningOutcomes]
     }
+  }
+  
+  potentialLearners <- unique(unlist(learnerList))
+  
+  for(i in potentialLearners) {
+    newLearner[i] <-  ifelse(runif(1,0,1) < sum(unlist(learnerList) == i)/length(which(netList[[network]][i,]>0)),1,0)
   }
   
   return(list(produceTemp,newLearner))
@@ -189,7 +238,9 @@ dyadic_diffusion <- function(ind_data, netList, network, informedNodes, domValue
                               prob = domValues[currentInformed] * 
                                 c(1,netList[[network]][i,focalNeighbors[focalNeighbors %in% informedNodes]])))
     }
-    produceTemp[demons] <- 1
+    focalSuccess <- ifelse(i %in% demons, 1, 0)
+    produceTemp[i] <- focalSuccess
+    #produceTemp[demons] <- 1
   }
   
   if(groupAdjustment) {
