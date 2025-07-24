@@ -198,26 +198,40 @@ hyperNetwork_diffusion <- function(ind_data, netList, network, informedNodes, do
   activeNodes <- which(produceTemp>0)
   
   activeHyperedges <- unique(sort(unlist(sapply(activeNodes, function(x) which(netList[[network]][x,]>0)))))
-  learnerList <- vector("list", length(activeHyperedges))
+  #learnerList <- vector("list", length(activeHyperedges))
   
-  for(i in 1:length(activeHyperedges)) {
-    activeHyperedge <- activeHyperedges[i]
-    activeHyperedgeMembs <- which(netList[[network]][,activeHyperedge]>0)
-    currentInformed <- activeHyperedgeMembs[activeHyperedgeMembs %in% informedNodes]
-    currentActive <- activeHyperedgeMembs[activeHyperedgeMembs %in% activeNodes]
-    currentUninformed <- activeHyperedgeMembs[!(activeHyperedgeMembs %in% currentInformed)]
-    gA <- ifelse(groupAdjustment, length(activeHyperedgeMembs), 1)
-    learningOutcomes <- runif(length(currentUninformed)) < (1 - (1 - social_trans/gA)^length(currentActive))
-    if(length(currentUninformed[learningOutcomes]) > 0) {
-      learnerList[[i]] <- currentUninformed[learningOutcomes]
-    }
-  }
-  
-  potentialLearners <- unique(unlist(learnerList))
+  #Start new lines
+  potentialLearners <- sort(unique(unlist(sapply(activeHyperedges, function(x) which(netList[[network]][,x]>0)))))
+  potentialLearners <- potentialLearners[!(potentialLearners %in% informedNodes)]
   
   for(i in potentialLearners) {
-    newLearner[i] <-  ifelse(runif(1,0,1) < sum(unlist(learnerList) == i)/length(which(netList[[network]][i,]>0)),1,0)
+    learnerHyperedges <- activeHyperedges[sapply(activeHyperedges, function(x) i %in% which(netList[[network]][,x]>0))]
+    gA <- if(groupAdjustment) {sapply(learnerHyperedges, function(x) sum(netList[[network]][,x]))} else{rep(1,length(learnerHyperedges))}
+    numDemons <- sapply(learnerHyperedges, function(x) sum(activeNodes %in% which(netList[[network]][,x]>0)))
+    learnerProb <- 1-prod((1-social_trans/gA)^numDemons)
+    newLearner[i] <- ifelse(runif(1,0,1) < learnerProb, 1, 0)
   }
+  #End new lines
+  
+  #Below is old method; above is preferred
+  # for(i in 1:length(activeHyperedges)) {
+  #   activeHyperedge <- activeHyperedges[i]
+  #   activeHyperedgeMembs <- which(netList[[network]][,activeHyperedge]>0)
+  #   currentInformed <- activeHyperedgeMembs[activeHyperedgeMembs %in% informedNodes]
+  #   currentActive <- activeHyperedgeMembs[activeHyperedgeMembs %in% activeNodes]
+  #   currentUninformed <- activeHyperedgeMembs[!(activeHyperedgeMembs %in% currentInformed)]
+  #   gA <- ifelse(groupAdjustment, length(activeHyperedgeMembs), 1)
+  #   learningOutcomes <- runif(length(currentUninformed)) < (1 - (1 - social_trans/gA)^length(currentActive))
+  #   if(length(currentUninformed[learningOutcomes]) > 0) {
+  #     learnerList[[i]] <- currentUninformed[learningOutcomes]
+  #   }
+  # }
+  # 
+  # potentialLearners <- unique(unlist(learnerList))
+  # 
+  # for(i in potentialLearners) {
+  #   newLearner[i] <-  ifelse(runif(1,0,1) < sum(unlist(learnerList) == i)/length(which(netList[[network]][i,]>0)),1,0)
+  # }
   
   return(list(produceTemp,newLearner))
 }
